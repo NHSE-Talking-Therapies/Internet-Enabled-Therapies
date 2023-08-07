@@ -251,11 +251,11 @@ GROUP BY
 	,EndCodeDescription
 	,ProblemDescriptor
 
---ICB, No IET
+--Region, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
 SELECT 
 Month
-,'ICB' AS OrgType
+,'Region' AS OrgType
 ,RegionNameComm AS Region
 ,RegionNameComm  AS OrgName
 ,RegionCodeComm  AS OrgCode
