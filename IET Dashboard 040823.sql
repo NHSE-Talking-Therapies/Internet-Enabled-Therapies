@@ -20,6 +20,43 @@ INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON ca.[UniqueSubmissionID] = l.
 WHERE l.IsLatest = 1 
 GROUP BY ca.PathwayID
 
+
+IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_ConsMed]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_ConsMed]
+
+SELECT
+	PathwayID
+	,SUM([Face to face communication]) AS [Face to face communication]
+	,SUM([Other]) AS [Other]
+INTO [MHDInternal].[TEMP_TTAD_IET_ConsMed]
+FROM(
+	SELECT DISTINCT 
+			c.[PathwayID]
+			,c.Unique_CareContactID
+			,CASE WHEN (c.ConsMechanism IN ('01', '1', '1 ', ' 1') OR c.ConsMediumUsed IN ('01', '1', '1 ', ' 1'))
+					AND c.Unique_CareContactID IS NOT NULL
+				THEN 1 
+				END AS 'Face to face communication'
+			,CASE WHEN c.ConsMechanism IN ('02', '2', '2 ', ' 2','03', '3', '3 ', ' 3','04', '4', '4 '
+					, ' 4','05', '5', '5 ', ' 5','06', '6', '6 ', ' 6','98', '98 ', ' 98','08', '8', '8 '
+					, ' 8','09', '9', '9 ', ' 9','10', '10', '10 ', ' 10','11', '11', '11 ', ' 11','12'
+					, '12', '12 ', ' 12','13', '13', '13 ', ' 13') 
+					OR c.ConsMediumUsed IN ('02', '2', '2 ', ' 2','03', '3', '3 ', ' 3','04', '4', '4 ', ' 4'
+					,'05', '5', '5 ', ' 5','06', '6', '6 ', ' 6','98', '98 ', ' 98','08', '8', '8 ', ' 8','09'
+					, '9', '9 ', ' 9','10', '10', '10 ', ' 10','11', '11', '11 ', ' 11','12', '12', '12 '
+					, ' 12','13', '13', '13 ', ' 13') 
+					AND c.Unique_CareContactID IS NOT NULL
+				THEN 1 
+			END AS 'Other'
+	
+	FROM [mesh_IAPT].[IDS201carecontact] c
+	INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON c.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND c.AuditId = l.AuditId
+	WHERE (c.[AttendOrDNACode] in ('5','6') or c.PlannedCareContIndicator = 'N') AND c.AppType IN ('01','02','03','05') and IsLatest = 1
+)_
+GROUP BY PathwayID
+
+
+
+
 DECLARE @PeriodStart DATE
 DECLARE @PeriodEnd DATE 
 --For refreshing, the offset for getting the period start and end should be -1 to get the latest refreshed month
