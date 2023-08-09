@@ -1,5 +1,4 @@
---hello
-
+--For clinical time for just IET
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_TypeAndDuration]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration]
 SELECT  
     i.PathwayID
@@ -12,6 +11,8 @@ INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON i.[UniqueSubmissionID] = l.[
 WHERE l.IsLatest = 1 
 GROUP BY i.PathwayID, i.IntEnabledTherProg, i.IntegratedSoftwareInd
 
+
+--For Clinical Time including IET
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_NoIETDuration]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_NoIETDuration]
 SELECT  
     ca.PathwayID
@@ -23,38 +24,68 @@ WHERE l.IsLatest = 1
 GROUP BY ca.PathwayID
 
 
-IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_ConsMed]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_ConsMed]
+-- IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_ConsMed]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_ConsMed]
 
-SELECT
-	PathwayID
-	,SUM([Face to face communication]) AS [Face to face communication]
-	-- ,SUM([Other]) AS [Other]
-INTO [MHDInternal].[TEMP_TTAD_IET_ConsMed]
-FROM(
-	SELECT DISTINCT 
-			c.[PathwayID]
-			,c.Unique_CareContactID
-			,CASE WHEN (c.ConsMechanism IN ('01', '1', '1 ', ' 1') OR c.ConsMediumUsed IN ('01', '1', '1 ', ' 1'))
-					AND c.Unique_CareContactID IS NOT NULL
-				THEN 1 
-				END AS 'Face to face communication'
-			-- ,CASE WHEN c.ConsMechanism IN ('02', '2', '2 ', ' 2','03', '3', '3 ', ' 3','04', '4', '4 '
-			-- 		, ' 4','05', '5', '5 ', ' 5','06', '6', '6 ', ' 6','98', '98 ', ' 98','08', '8', '8 '
-			-- 		, ' 8','09', '9', '9 ', ' 9','10', '10', '10 ', ' 10','11', '11', '11 ', ' 11','12'
-			-- 		, '12', '12 ', ' 12','13', '13', '13 ', ' 13') 
-			-- 		OR c.ConsMediumUsed IN ('02', '2', '2 ', ' 2','03', '3', '3 ', ' 3','04', '4', '4 ', ' 4'
-			-- 		,'05', '5', '5 ', ' 5','06', '6', '6 ', ' 6','98', '98 ', ' 98','08', '8', '8 ', ' 8','09'
-			-- 		, '9', '9 ', ' 9','10', '10', '10 ', ' 10','11', '11', '11 ', ' 11','12', '12', '12 '
-			-- 		, ' 12','13', '13', '13 ', ' 13') 
-			-- 		AND c.Unique_CareContactID IS NOT NULL
-			-- 	THEN 1 
-			-- END AS 'Other'
+-- SELECT
+-- 	PathwayID
+-- 	,SUM([Face to face communication]) AS [Face to face communication]
+-- 	-- ,SUM([Other]) AS [Other]
+-- INTO [MHDInternal].[TEMP_TTAD_IET_ConsMed]
+-- FROM(
+-- 	SELECT DISTINCT 
+-- 			c.[PathwayID]
+-- 			,c.Unique_CareContactID
+-- 			,CASE WHEN (c.ConsMechanism IN ('01', '1', '1 ', ' 1') OR c.ConsMediumUsed IN ('01', '1', '1 ', ' 1'))
+-- 					AND c.Unique_CareContactID IS NOT NULL
+-- 				THEN 1 
+-- 				END AS 'Face to face communication'
+-- 			-- ,CASE WHEN c.ConsMechanism IN ('02', '2', '2 ', ' 2','03', '3', '3 ', ' 3','04', '4', '4 '
+-- 			-- 		, ' 4','05', '5', '5 ', ' 5','06', '6', '6 ', ' 6','98', '98 ', ' 98','08', '8', '8 '
+-- 			-- 		, ' 8','09', '9', '9 ', ' 9','10', '10', '10 ', ' 10','11', '11', '11 ', ' 11','12'
+-- 			-- 		, '12', '12 ', ' 12','13', '13', '13 ', ' 13') 
+-- 			-- 		OR c.ConsMediumUsed IN ('02', '2', '2 ', ' 2','03', '3', '3 ', ' 3','04', '4', '4 ', ' 4'
+-- 			-- 		,'05', '5', '5 ', ' 5','06', '6', '6 ', ' 6','98', '98 ', ' 98','08', '8', '8 ', ' 8','09'
+-- 			-- 		, '9', '9 ', ' 9','10', '10', '10 ', ' 10','11', '11', '11 ', ' 11','12', '12', '12 '
+-- 			-- 		, ' 12','13', '13', '13 ', ' 13') 
+-- 			-- 		AND c.Unique_CareContactID IS NOT NULL
+-- 			-- 	THEN 1 
+-- 			-- END AS 'Other'
 	
-	FROM [mesh_IAPT].[IDS201carecontact] c
-	INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON c.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND c.AuditId = l.AuditId
-	WHERE (c.[AttendOrDNACode] in ('5','6') or c.PlannedCareContIndicator = 'N') AND c.AppType IN ('01','02','03','05') and IsLatest = 1
-)_
-GROUP BY PathwayID
+-- 	FROM [mesh_IAPT].[IDS201carecontact] c
+-- 	INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON c.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND c.AuditId = l.AuditId
+-- 	WHERE (c.[AttendOrDNACode] in ('5','6') or c.PlannedCareContIndicator = 'N') AND c.AppType IN ('01','02','03','05') and IsLatest = 1
+-- )_
+-- GROUP BY PathwayID
+
+
+--For IET contacts
+IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_IETContacts]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_IETContacts]
+SELECT  DISTINCT
+    i.PathwayID
+    ,i.IntEnabledTherProg
+	,i.IntegratedSoftwareInd
+	,i.StartDateIntEnabledTherLog
+	,i.EndDateIntEnabledTherLog
+    ,i.DurationIntEnabledTher
+INTO [MHDInternal].[TEMP_TTAD_IET_IETContacts]
+FROM [mesh_IAPT].[IDS205internettherlog] i
+INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON i.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND i.[AuditId] = l.[AuditId]
+WHERE l.IsLatest = 1
+
+
+
+--For all contacts
+IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_AllContacts]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AllContacts]
+SELECT  
+    ca.PathwayID
+    ,ca.ClinContactDurOfCareAct
+INTO [MHDInternal].[TEMP_TTAD_IET_AllContacts]
+FROM [mesh_IAPT].[IDS202careactivity] ca
+INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON ca.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND ca.[AuditId] = l.[AuditId]
+WHERE l.IsLatest = 1
+
+
+
 
 
 
@@ -113,8 +144,8 @@ SELECT DISTINCT
 	,i.IntegratedSoftwareInd
 
 	--Consultation Medium
-	,CASE WHEN m.[Face to face communication]>0 THEN 'F2F' ELSE 'No F2F'
-		END AS ConsultationMedium
+	-- ,CASE WHEN m.[Face to face communication]>0 THEN 'F2F' ELSE 'No F2F'
+	-- 	END AS ConsultationMedium
 
 	--Reasons for Ending Treatment
 	,r.EndCode
@@ -194,7 +225,7 @@ FROM [MESH_IAPT].[IDS101referral] r
 	--Three tables for getting the up-to-date Sub-ICB/ICB/Region/Provider names/codes
     LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration] i ON i.PathwayID = r.PathwayID
 	LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_NoIETDuration] ca ON ca.PathwayID=r.PathwayID
-	LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_ConsMed] m ON m.PathwayID=r.PathwayID
+	-- LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_ConsMed] m ON m.PathwayID=r.PathwayID
 
 WHERE r.UsePathway_Flag = 'True' 
 		AND l.IsLatest = 1	--To get the latest data
@@ -214,8 +245,9 @@ Month
 ,CAST('1+ IET' AS VARCHAR(50)) AS AppointmentType
 ,InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS TherapistTime
-,ConsultationMedium
+,DurationIntEnabledTher AS IETTherapistTime
+,ClinContactDurOfCareAct AS ClinicalTherapistTime
+--,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
@@ -236,7 +268,8 @@ GROUP BY
 	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
 	,DurationIntEnabledTher
-	,ConsultationMedium
+	,ClinContactDurOfCareAct
+	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
@@ -256,8 +289,9 @@ Month
 ,'No IET' AS AppointmentType
 ,InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,ClinContactDurOfCareAct AS TherapistTime
-,ConsultationMedium
+,DurationIntEnabledTher AS IETTherapistTime
+,ClinContactDurOfCareAct AS ClinicalTherapistTime
+--,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
@@ -276,8 +310,9 @@ GROUP BY
 	Month
 	,IntEnabledTherProg
 	,InternetEnabledTherapy_Count
+	,DurationIntEnabledTher
 	,ClinContactDurOfCareAct
-	,ConsultationMedium
+	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
@@ -297,8 +332,9 @@ Month
 ,'2+ IET' AS AppointmentType
 ,InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS TherapistTime
-,ConsultationMedium
+,DurationIntEnabledTher AS IETTherapistTime
+,ClinContactDurOfCareAct AS ClinicalTherapistTime
+--,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
@@ -318,7 +354,8 @@ GROUP BY
 	,IntEnabledTherProg
 	,InternetEnabledTherapy_Count
 	,DurationIntEnabledTher
-	,ConsultationMedium
+	,ClinContactDurOfCareAct
+	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
@@ -339,8 +376,9 @@ Month
 ,'1+ IET' AS AppointmentType
 ,InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS TherapistTime
-,ConsultationMedium
+,DurationIntEnabledTher AS IETTherapistTime
+,ClinContactDurOfCareAct AS ClinicalTherapistTime
+--,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
@@ -362,7 +400,8 @@ GROUP BY
 	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
 	,DurationIntEnabledTher
-	,ConsultationMedium
+	,ClinContactDurOfCareAct
+	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
@@ -381,8 +420,9 @@ Month
 ,'No IET' AS AppointmentType
 ,InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,ClinContactDurOfCareAct AS TherapistTime
-,ConsultationMedium
+,DurationIntEnabledTher AS IETTherapistTime
+,ClinContactDurOfCareAct AS ClinicalTherapistTime
+--,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
@@ -403,8 +443,9 @@ GROUP BY
 	,RegionCodeComm 
 	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
+	,DurationIntEnabledTher
 	,ClinContactDurOfCareAct
-	,ConsultationMedium
+	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
@@ -424,8 +465,9 @@ Month
 ,'2+ IET' AS AppointmentType
 ,InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS TherapistTime
-,ConsultationMedium
+,DurationIntEnabledTher AS IETTherapistTime
+,ClinContactDurOfCareAct AS ClinicalTherapistTime
+--,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
@@ -447,7 +489,8 @@ GROUP BY
 	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
 	,DurationIntEnabledTher
-	,ConsultationMedium
+	,ClinContactDurOfCareAct
+	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
@@ -467,8 +510,9 @@ Month
 ,'1+ IET' AS AppointmentType
 ,InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS TherapistTime
-,ConsultationMedium
+,DurationIntEnabledTher AS IETTherapistTime
+,ClinContactDurOfCareAct AS ClinicalTherapistTime
+--,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
@@ -491,7 +535,8 @@ GROUP BY
 	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
 	,DurationIntEnabledTher
-	,ConsultationMedium
+	,ClinContactDurOfCareAct
+	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
@@ -511,8 +556,9 @@ Month
 ,'No IET' AS AppointmentType
 ,InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,ClinContactDurOfCareAct AS TherapistTime
-,ConsultationMedium
+,DurationIntEnabledTher AS IETTherapistTime
+,ClinContactDurOfCareAct AS ClinicalTherapistTime
+--,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
@@ -534,8 +580,9 @@ GROUP BY
 	,[ICBCode]
 	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
+	,DurationIntEnabledTher
 	,ClinContactDurOfCareAct
-	,ConsultationMedium
+	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
@@ -555,8 +602,9 @@ Month
 ,'2+ IET' AS AppointmentType
 ,InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS TherapistTime
-,ConsultationMedium
+,DurationIntEnabledTher AS IETTherapistTime
+,ClinContactDurOfCareAct AS ClinicalTherapistTime
+--,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
@@ -579,7 +627,8 @@ GROUP BY
 	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
 	,DurationIntEnabledTher
-	,ConsultationMedium
+	,ClinContactDurOfCareAct
+	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
@@ -599,8 +648,9 @@ Month
 ,'1+ IET' AS AppointmentType
 ,InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS TherapistTime
-,ConsultationMedium
+,DurationIntEnabledTher AS IETTherapistTime
+,ClinContactDurOfCareAct AS ClinicalTherapistTime
+--,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
@@ -623,7 +673,8 @@ GROUP BY
 	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
 	,DurationIntEnabledTher
-	,ConsultationMedium
+	,ClinContactDurOfCareAct
+	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
@@ -643,8 +694,9 @@ Month
 ,'No IET' AS AppointmentType
 ,InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,ClinContactDurOfCareAct AS TherapistTime
-,ConsultationMedium
+,DurationIntEnabledTher AS IETTherapistTime
+,ClinContactDurOfCareAct AS ClinicalTherapistTime
+--,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
@@ -666,8 +718,9 @@ GROUP BY
 	,[Sub-ICBCode]
 	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
+	,DurationIntEnabledTher
 	,ClinContactDurOfCareAct
-	,ConsultationMedium
+	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
@@ -687,8 +740,9 @@ Month
 ,'2+ IET' AS AppointmentType
 ,InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS TherapistTime
-,ConsultationMedium
+,DurationIntEnabledTher AS IETTherapistTime
+,ClinContactDurOfCareAct AS ClinicalTherapistTime
+--,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
@@ -711,7 +765,8 @@ GROUP BY
 	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
 	,DurationIntEnabledTher
-	,ConsultationMedium
+	,ClinContactDurOfCareAct
+	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
@@ -731,8 +786,9 @@ Month
 ,'1+ IET' AS AppointmentType
 ,InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS TherapistTime
-,ConsultationMedium
+,DurationIntEnabledTher AS IETTherapistTime
+,ClinContactDurOfCareAct AS ClinicalTherapistTime
+--,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
@@ -755,7 +811,8 @@ GROUP BY
 	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
 	,DurationIntEnabledTher
-	,ConsultationMedium
+	,ClinContactDurOfCareAct
+	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
@@ -775,8 +832,9 @@ Month
 ,'No IET' AS AppointmentType
 ,InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,ClinContactDurOfCareAct AS TherapistTime
-,ConsultationMedium
+,DurationIntEnabledTher AS IETTherapistTime
+,ClinContactDurOfCareAct AS ClinicalTherapistTime
+--,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
@@ -798,8 +856,9 @@ GROUP BY
 	,[ProviderCode]
 	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
+	,DurationIntEnabledTher
 	,ClinContactDurOfCareAct
-	,ConsultationMedium
+	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
@@ -819,8 +878,9 @@ Month
 ,'2+ IET' AS AppointmentType
 ,InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS TherapistTime
-,ConsultationMedium
+,DurationIntEnabledTher AS IETTherapistTime
+,ClinContactDurOfCareAct AS ClinicalTherapistTime
+--,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
@@ -843,7 +903,8 @@ GROUP BY
 	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
 	,DurationIntEnabledTher
-	,ConsultationMedium
+	,ClinContactDurOfCareAct
+	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
