@@ -1,3 +1,5 @@
+--hello
+
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_TypeAndDuration]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration]
 SELECT  
     i.PathwayID
