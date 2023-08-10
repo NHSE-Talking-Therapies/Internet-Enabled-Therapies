@@ -58,38 +58,6 @@ GROUP BY ca.PathwayID
 -- GROUP BY PathwayID
 
 
---For IET contacts
-IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_IETContacts]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_IETContacts]
-SELECT  DISTINCT
-    i.PathwayID
-    ,i.IntEnabledTherProg
-	,i.IntegratedSoftwareInd
-	,i.StartDateIntEnabledTherLog
-	,i.EndDateIntEnabledTherLog
-    ,i.DurationIntEnabledTher
-INTO [MHDInternal].[TEMP_TTAD_IET_IETContacts]
-FROM [mesh_IAPT].[IDS205internettherlog] i
-INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON i.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND i.[AuditId] = l.[AuditId]
-WHERE l.IsLatest = 1
-
-
-
---For all contacts
-IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_AllContacts]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AllContacts]
-SELECT  
-    ca.PathwayID
-    ,ca.ClinContactDurOfCareAct
-INTO [MHDInternal].[TEMP_TTAD_IET_AllContacts]
-FROM [mesh_IAPT].[IDS202careactivity] ca
-INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON ca.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND ca.[AuditId] = l.[AuditId]
-WHERE l.IsLatest = 1
-
-
-
-
-
-
-
 DECLARE @PeriodStart DATE
 DECLARE @PeriodEnd DATE 
 --For refreshing, the offset for getting the period start and end should be -1 to get the latest refreshed month
@@ -105,12 +73,13 @@ SET DATEFIRST 1
 PRINT @PeriodStart
 PRINT @PeriodEnd
 
-IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_Base]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_Base]
 SELECT DISTINCT
 	CAST(DATENAME(m, l.ReportingPeriodStartDate) + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR) AS DATE) as Month
     ,l.ReportingPeriodStartDate
 	,l.ReportingPeriodEndDate
 	,r.PathwayID
+	,r.Unique_MonthID
 
 	,r.ReferralRequestReceivedDate
 	,r.Assessment_FirstDate
@@ -216,7 +185,7 @@ SELECT DISTINCT
 	,ph.Organisation_Name as 'ProviderName'
 	,ph.Region_Name as 'RegionNameProv'
 	--,ph.Region_Code as 'RegionCodeProv'
-INTO [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+INTO [MHDInternal].[TEMP_TTAD_IET_Base]
 FROM [MESH_IAPT].[IDS101referral] r
     INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON r.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND r.[AuditId] = l.[AuditId]
     LEFT JOIN [MHDInternal].[REFERENCE_CCG_2020_Lookup] c ON r.OrgIDComm = c.IC_CCG					
@@ -234,7 +203,7 @@ WHERE r.UsePathway_Flag = 'True'
 		AND l.[ReportingPeriodStartDate] BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart	--for refresh, the offset should be 0 as only want the data for the latest month
 		
 		
-IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
+IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_Main]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 --National, IET 1+
 SELECT 
 Month
@@ -243,43 +212,30 @@ Month
 ,CAST('England' AS VARCHAR(255)) AS OrgName
 ,CAST('ENG' AS VARCHAR(50)) AS OrgCode
 ,CAST('1+ IET' AS VARCHAR(50)) AS AppointmentType
-,InternetEnabledTherapy_Count
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS IETTherapistTime
-,ClinContactDurOfCareAct AS ClinicalTherapistTime
---,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
-,WaitRefToFirstAssess
-,WaitRefToFirstTherapy
-,WaitFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
 ,SUM(CompTreatFlagRelRecFlags) AS CompTreatFlagRelRecFlags
 ,SUM(CompTreatFlag) AS CompTreatFlag
-INTO [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
-FROM [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
 	Month
-	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
-	,DurationIntEnabledTher
-	,ClinContactDurOfCareAct
-	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
-	,WaitRefToFirstAssess
-	,WaitRefToFirstTherapy
-	,WaitFirstTherapyToSecondTherapy
 GO
 --National, No IET
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 SELECT 
 Month
 ,CAST('National' AS VARCHAR(50)) AS OrgType
@@ -287,42 +243,29 @@ Month
 ,CAST('England' AS VARCHAR(255)) AS OrgName
 ,CAST('ENG' AS VARCHAR(50)) AS OrgCode
 ,'No IET' AS AppointmentType
-,InternetEnabledTherapy_Count
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS IETTherapistTime
-,ClinContactDurOfCareAct AS ClinicalTherapistTime
---,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
-,WaitRefToFirstAssess
-,WaitRefToFirstTherapy
-,WaitFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
 ,SUM(CompTreatFlagRelRecFlags) AS CompTreatFlagRelRecFlags
 ,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
 	Month
 	,IntEnabledTherProg
-	,InternetEnabledTherapy_Count
-	,DurationIntEnabledTher
-	,ClinContactDurOfCareAct
-	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
-	,WaitRefToFirstAssess
-	,WaitRefToFirstTherapy
-	,WaitFirstTherapyToSecondTherapy
 
 --National, IET 2+
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 SELECT 
 Month
 ,CAST('National' AS VARCHAR(50)) AS OrgType
@@ -330,43 +273,29 @@ Month
 ,CAST('England' AS VARCHAR(255)) AS OrgName
 ,CAST('ENG' AS VARCHAR(50)) AS OrgCode
 ,'2+ IET' AS AppointmentType
-,InternetEnabledTherapy_Count
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS IETTherapistTime
-,ClinContactDurOfCareAct AS ClinicalTherapistTime
---,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
-,WaitRefToFirstAssess
-,WaitRefToFirstTherapy
-,WaitFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
 ,SUM(CompTreatFlagRelRecFlags) AS CompTreatFlagRelRecFlags
 ,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
 	Month
 	,IntEnabledTherProg
-	,InternetEnabledTherapy_Count
-	,DurationIntEnabledTher
-	,ClinContactDurOfCareAct
-	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
-	,WaitRefToFirstAssess
-	,WaitRefToFirstTherapy
-	,WaitFirstTherapyToSecondTherapy
-
 
 --Region, 1+ IET
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 SELECT 
 Month
 ,'Region' AS OrgType
@@ -374,43 +303,31 @@ Month
 ,RegionNameComm AS OrgName
 ,RegionCodeComm AS OrgCode
 ,'1+ IET' AS AppointmentType
-,InternetEnabledTherapy_Count
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS IETTherapistTime
-,ClinContactDurOfCareAct AS ClinicalTherapistTime
---,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
-,WaitRefToFirstAssess
-,WaitRefToFirstTherapy
-,WaitFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
 ,SUM(CompTreatFlagRelRecFlags) AS CompTreatFlagRelRecFlags
 ,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
 	Month
 	,RegionNameComm
 	,RegionCodeComm
-	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
-	,DurationIntEnabledTher
-	,ClinContactDurOfCareAct
-	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
-	,WaitRefToFirstAssess
-	,WaitRefToFirstTherapy
-	,WaitFirstTherapyToSecondTherapy
+
 --Region, No IET
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 SELECT 
 Month
 ,'Region' AS OrgType
@@ -418,44 +335,31 @@ Month
 ,RegionNameComm  AS OrgName
 ,RegionCodeComm  AS OrgCode
 ,'No IET' AS AppointmentType
-,InternetEnabledTherapy_Count
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS IETTherapistTime
-,ClinContactDurOfCareAct AS ClinicalTherapistTime
---,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
-,WaitRefToFirstAssess
-,WaitRefToFirstTherapy
-,WaitFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
 ,SUM(CompTreatFlagRelRecFlags) AS CompTreatFlagRelRecFlags
 ,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
 	Month
 	,RegionNameComm
 	,RegionCodeComm 
-	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
-	,DurationIntEnabledTher
-	,ClinContactDurOfCareAct
-	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
-	,WaitRefToFirstAssess
-	,WaitRefToFirstTherapy
-	,WaitFirstTherapyToSecondTherapy
 
 --Region, 2+ IET
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 SELECT 
 Month
 ,'Region' AS OrgType
@@ -463,44 +367,32 @@ Month
 ,RegionNameComm  AS OrgName
 ,RegionCodeComm  AS OrgCode
 ,'2+ IET' AS AppointmentType
-,InternetEnabledTherapy_Count
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS IETTherapistTime
-,ClinContactDurOfCareAct AS ClinicalTherapistTime
---,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
-,WaitRefToFirstAssess
-,WaitRefToFirstTherapy
-,WaitFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
 ,SUM(CompTreatFlagRelRecFlags) AS CompTreatFlagRelRecFlags
 ,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
 	Month
 	,RegionNameComm
 	,RegionCodeComm 
-	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
-	,DurationIntEnabledTher
-	,ClinContactDurOfCareAct
-	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
-	,WaitRefToFirstAssess
-	,WaitRefToFirstTherapy
-	,WaitFirstTherapyToSecondTherapy
+
 
 --ICB, 1+ IET
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 SELECT 
 Month
 ,'ICB' AS OrgType
@@ -508,45 +400,32 @@ Month
 ,[ICBName] AS OrgName
 ,[ICBCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
-,InternetEnabledTherapy_Count
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS IETTherapistTime
-,ClinContactDurOfCareAct AS ClinicalTherapistTime
---,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
-,WaitRefToFirstAssess
-,WaitRefToFirstTherapy
-,WaitFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
 ,SUM(CompTreatFlagRelRecFlags) AS CompTreatFlagRelRecFlags
 ,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
 	Month
 	,RegionNameComm
 	,[ICBName]
 	,[ICBCode]
-	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
-	,DurationIntEnabledTher
-	,ClinContactDurOfCareAct
-	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
-	,WaitRefToFirstAssess
-	,WaitRefToFirstTherapy
-	,WaitFirstTherapyToSecondTherapy
 
 --ICB, No IET
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 SELECT 
 Month
 ,'ICB' AS OrgType
@@ -554,45 +433,33 @@ Month
 ,[ICBName] AS OrgName
 ,[ICBCode] AS OrgCode
 ,'No IET' AS AppointmentType
-,InternetEnabledTherapy_Count
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS IETTherapistTime
-,ClinContactDurOfCareAct AS ClinicalTherapistTime
---,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
-,WaitRefToFirstAssess
-,WaitRefToFirstTherapy
-,WaitFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
 ,SUM(CompTreatFlagRelRecFlags) AS CompTreatFlagRelRecFlags
 ,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
 	Month
 	,RegionNameComm
 	,[ICBName]
 	,[ICBCode]
-	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
-	,DurationIntEnabledTher
-	,ClinContactDurOfCareAct
-	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
-	,WaitRefToFirstAssess
-	,WaitRefToFirstTherapy
-	,WaitFirstTherapyToSecondTherapy
+
 
 --ICB, 2+ IET
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 SELECT 
 Month
 ,'ICB' AS OrgType
@@ -600,45 +467,32 @@ Month
 ,[ICBName] AS OrgName
 ,[ICBCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
-,InternetEnabledTherapy_Count
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS IETTherapistTime
-,ClinContactDurOfCareAct AS ClinicalTherapistTime
---,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
-,WaitRefToFirstAssess
-,WaitRefToFirstTherapy
-,WaitFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
 ,SUM(CompTreatFlagRelRecFlags) AS CompTreatFlagRelRecFlags
 ,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
 	Month
 	,RegionNameComm
 	,[ICBName]
 	,[ICBCode]
-	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
-	,DurationIntEnabledTher
-	,ClinContactDurOfCareAct
-	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
-	,WaitRefToFirstAssess
-	,WaitRefToFirstTherapy
-	,WaitFirstTherapyToSecondTherapy
 
 --Sub-ICB, 1+ IET
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 SELECT 
 Month
 ,'Sub-ICB' AS OrgType
@@ -646,45 +500,32 @@ Month
 ,[Sub-ICBName] AS OrgName
 ,[Sub-ICBCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
-,InternetEnabledTherapy_Count
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS IETTherapistTime
-,ClinContactDurOfCareAct AS ClinicalTherapistTime
---,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
-,WaitRefToFirstAssess
-,WaitRefToFirstTherapy
-,WaitFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
 ,SUM(CompTreatFlagRelRecFlags) AS CompTreatFlagRelRecFlags
 ,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
 	Month
 	,RegionNameComm
 	,[Sub-ICBName]
 	,[Sub-ICBCode]
-	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
-	,DurationIntEnabledTher
-	,ClinContactDurOfCareAct
-	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
-	,WaitRefToFirstAssess
-	,WaitRefToFirstTherapy
-	,WaitFirstTherapyToSecondTherapy
 
 --Sub-ICB, No IET
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 SELECT 
 Month
 ,'Sub-ICB' AS OrgType
@@ -692,45 +533,32 @@ Month
 ,[Sub-ICBName] AS OrgName
 ,[Sub-ICBCode] AS OrgCode
 ,'No IET' AS AppointmentType
-,InternetEnabledTherapy_Count
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS IETTherapistTime
-,ClinContactDurOfCareAct AS ClinicalTherapistTime
---,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
-,WaitRefToFirstAssess
-,WaitRefToFirstTherapy
-,WaitFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
 ,SUM(CompTreatFlagRelRecFlags) AS CompTreatFlagRelRecFlags
 ,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
 	Month
 	,RegionNameComm
 	,[Sub-ICBName]
 	,[Sub-ICBCode]
-	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
-	,DurationIntEnabledTher
-	,ClinContactDurOfCareAct
-	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
-	,WaitRefToFirstAssess
-	,WaitRefToFirstTherapy
-	,WaitFirstTherapyToSecondTherapy
 
 --Sub-ICB, 2+ IET
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 SELECT 
 Month
 ,'Sub-ICB' AS OrgType
@@ -738,45 +566,32 @@ Month
 ,[Sub-ICBName] AS OrgName
 ,[Sub-ICBCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
-,InternetEnabledTherapy_Count
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS IETTherapistTime
-,ClinContactDurOfCareAct AS ClinicalTherapistTime
---,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
-,WaitRefToFirstAssess
-,WaitRefToFirstTherapy
-,WaitFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
 ,SUM(CompTreatFlagRelRecFlags) AS CompTreatFlagRelRecFlags
 ,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
 	Month
 	,RegionNameComm
 	,[Sub-ICBName]
 	,[Sub-ICBCode]
-	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
-	,DurationIntEnabledTher
-	,ClinContactDurOfCareAct
-	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
-	,WaitRefToFirstAssess
-	,WaitRefToFirstTherapy
-	,WaitFirstTherapyToSecondTherapy
 
 --Provider, 1+ IET
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 SELECT 
 Month
 ,'Provider' AS OrgType
@@ -784,45 +599,33 @@ Month
 ,[ProviderName] AS OrgName
 ,[ProviderCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
-,InternetEnabledTherapy_Count
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS IETTherapistTime
-,ClinContactDurOfCareAct AS ClinicalTherapistTime
---,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
-,WaitRefToFirstAssess
-,WaitRefToFirstTherapy
-,WaitFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
 ,SUM(CompTreatFlagRelRecFlags) AS CompTreatFlagRelRecFlags
 ,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
 	Month
 	,RegionNameProv
 	,[ProviderName]
 	,[ProviderCode]
-	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
-	,DurationIntEnabledTher
-	,ClinContactDurOfCareAct
-	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
-	,WaitRefToFirstAssess
-	,WaitRefToFirstTherapy
-	,WaitFirstTherapyToSecondTherapy
+
 
 --Provider, No IET
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 SELECT 
 Month
 ,'Provider' AS OrgType
@@ -830,45 +633,32 @@ Month
 ,[ProviderName] AS OrgName
 ,[ProviderCode] AS OrgCode
 ,'No IET' AS AppointmentType
-,InternetEnabledTherapy_Count
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS IETTherapistTime
-,ClinContactDurOfCareAct AS ClinicalTherapistTime
---,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
-,WaitRefToFirstAssess
-,WaitRefToFirstTherapy
-,WaitFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
 ,SUM(CompTreatFlagRelRecFlags) AS CompTreatFlagRelRecFlags
 ,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
 	Month
 	,RegionNameProv
 	,[ProviderName]
 	,[ProviderCode]
-	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
-	,DurationIntEnabledTher
-	,ClinContactDurOfCareAct
-	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
-	,WaitRefToFirstAssess
-	,WaitRefToFirstTherapy
-	,WaitFirstTherapyToSecondTherapy
 
 --Provider, 2+ IET
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Aggregated]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 SELECT 
 Month
 ,'Provider' AS OrgType
@@ -876,39 +666,27 @@ Month
 ,[ProviderName] AS OrgName
 ,[ProviderCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
-,InternetEnabledTherapy_Count
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
 ,IntEnabledTherProg
-,DurationIntEnabledTher AS IETTherapistTime
-,ClinContactDurOfCareAct AS ClinicalTherapistTime
---,ConsultationMedium
 ,IntegratedSoftwareInd
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
-,WaitRefToFirstAssess
-,WaitRefToFirstTherapy
-,WaitFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
 ,SUM(CompTreatFlagRelRecFlags) AS CompTreatFlagRelRecFlags
 ,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[DASHBOARD_TTAD_IET_WaitTimes]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
 	Month
 	,RegionNameProv
 	,[ProviderName]
 	,[ProviderCode]
-	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
-	,DurationIntEnabledTher
-	,ClinContactDurOfCareAct
-	--,ConsultationMedium
 	,IntegratedSoftwareInd
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
-	,WaitRefToFirstAssess
-	,WaitRefToFirstTherapy
-	,WaitFirstTherapyToSecondTherapy
+
