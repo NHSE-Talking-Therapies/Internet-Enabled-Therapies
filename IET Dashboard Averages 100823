@@ -387,35 +387,14 @@ GROUP BY
 	,IntEnabledTherProg
 
 
-------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---Avg appts
+-----------------------------------------------
 --Avg therapist time per contact
---Avg therapist time per treatment?
 
 --------------------------------------------------------------
 ----Averages for Contacts
 
 
-	--For IET avg therapist time per contact
+--For IET avg therapist time per contact
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_IETContacts]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_IETContacts]
 SELECT
 *
