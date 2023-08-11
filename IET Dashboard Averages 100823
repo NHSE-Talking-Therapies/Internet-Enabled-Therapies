@@ -387,14 +387,12 @@ GROUP BY
 	,IntEnabledTherProg
 
 
------------------------------------------------
---Avg therapist time per contact
+---------------------------------------------------------------
+--Average therapist time per contact for IETs and for any contact
 
---------------------------------------------------------------
-----Averages for Contacts
+----Average IET Contacts
 
-
---For IET avg therapist time per contact
+--For IET average therapist time per contact
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_IETContacts]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_IETContacts]
 SELECT
 *
@@ -412,6 +410,369 @@ FROM(
 	INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON i.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND i.[AuditId] = l.[AuditId]
 	WHERE l.IsLatest = 1
 )_
+
+--Base table for Average Therapist Time per IET contact
+IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+SELECT DISTINCT
+	b.Month
+	,b.PathwayID
+
+	--Number of Appointments
+    ,b.InternetEnabledTherapy_Count
+
+	--Contact dates
+	,i.StartDateIntEnabledTherLog
+
+	--Therapist Time
+	,i.DurationIntEnabledTher
+
+	,IntEnabledTherProg
+
+	,CASE WHEN i.LatestContactRank=1 OR i.LatestContactRank IS NULL THEN b.CompTreatFlag ELSE NULL 
+	END AS CompTreatFlag --Flag for completed treatment flag, where the discharge date is within the reporting period
+    
+    --Geography
+    ,b.[Sub-ICBCode]
+	,b.[Sub-ICBName]
+	,b.ICBCode
+	,b.ICBName
+	,b.RegionNameComm
+	,b.RegionCodeComm
+	,b.ProviderCode
+	,b.ProviderName
+	,b.RegionNameProv
+INTO [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base] b
+LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_IETContacts] i ON i.PathwayID = b.PathwayID 
+
+
+IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
+--National, IET 1+
+SELECT 
+Month
+,CAST('National' AS VARCHAR(50)) AS OrgType
+,CAST('All Regions' AS VARCHAR(255)) AS Region
+,CAST('England' AS VARCHAR(255)) AS OrgName
+,CAST('ENG' AS VARCHAR(50)) AS OrgCode
+,CAST('1+ IET' AS VARCHAR(50)) AS AppointmentType
+,IntEnabledTherProg
+,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+WHERE InternetEnabledTherapy_Count>=1
+GROUP BY 
+	Month
+	,IntEnabledTherProg
+GO
+
+--National, No IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
+SELECT 
+Month
+,'National' AS OrgType
+,'All Regions' AS Region
+,'England' AS OrgName
+,'ENG' AS OrgCode
+,'No IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
+GROUP BY 
+	Month
+	,IntEnabledTherProg
+
+
+--National, IET 2+
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
+SELECT 
+Month
+,'National' AS OrgType
+,'All Regions' AS Region
+,'England' AS OrgName
+,'ENG' AS OrgCode
+,'2+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+WHERE InternetEnabledTherapy_Count>=2
+GROUP BY 
+	Month
+	,IntEnabledTherProg
+
+--Region, 1+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
+SELECT 
+Month
+,'Region' AS OrgType
+,RegionNameComm AS Region
+,RegionNameComm AS OrgName
+,RegionCodeComm AS OrgCode
+,'1+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+WHERE InternetEnabledTherapy_Count>=1
+GROUP BY 
+	Month
+	,RegionNameComm
+	,RegionCodeComm
+	,IntEnabledTherProg
+
+
+--Region, No IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
+SELECT 
+Month
+,'Region' AS OrgType
+,RegionNameComm AS Region
+,RegionNameComm  AS OrgName
+,RegionCodeComm  AS OrgCode
+,'No IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
+GROUP BY 
+	Month
+	,RegionNameComm
+	,RegionCodeComm 
+	,IntEnabledTherProg
+
+
+--Region, 2+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
+SELECT 
+Month
+,'Region' AS OrgType
+,RegionNameComm AS Region
+,RegionNameComm  AS OrgName
+,RegionCodeComm  AS OrgCode
+,'2+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+WHERE InternetEnabledTherapy_Count>=2
+GROUP BY 
+	Month
+	,RegionNameComm
+	,RegionCodeComm 
+	,IntEnabledTherProg
+
+--ICB, 1+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
+SELECT 
+Month
+,'ICB' AS OrgType
+,RegionNameComm AS Region
+,[ICBName] AS OrgName
+,[ICBCode] AS OrgCode
+,'1+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+WHERE InternetEnabledTherapy_Count>=1
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[ICBName]
+	,[ICBCode]
+	,IntEnabledTherProg
+
+--ICB, No IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
+SELECT 
+Month
+,'ICB' AS OrgType
+,RegionNameComm AS Region
+,[ICBName] AS OrgName
+,[ICBCode] AS OrgCode
+,'No IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[ICBName]
+	,[ICBCode]
+	,IntEnabledTherProg
+
+
+--ICB, 2+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
+SELECT 
+Month
+,'ICB' AS OrgType
+,RegionNameComm AS Region
+,[ICBName] AS OrgName
+,[ICBCode] AS OrgCode
+,'2+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+WHERE InternetEnabledTherapy_Count>=2
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[ICBName]
+	,[ICBCode]
+	,IntEnabledTherProg
+
+
+--Sub-ICB, 1+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
+SELECT 
+Month
+,'Sub-ICB' AS OrgType
+,RegionNameComm AS Region
+,[Sub-ICBName] AS OrgName
+,[Sub-ICBCode] AS OrgCode
+,'1+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+WHERE InternetEnabledTherapy_Count>=1
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[Sub-ICBName]
+	,[Sub-ICBCode]
+	,IntEnabledTherProg
+
+--Sub-ICB, No IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
+SELECT 
+Month
+,'Sub-ICB' AS OrgType
+,RegionNameComm AS Region
+,[Sub-ICBName] AS OrgName
+,[Sub-ICBCode] AS OrgCode
+,'No IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[Sub-ICBName]
+	,[Sub-ICBCode]
+	,IntEnabledTherProg
+
+--Sub-ICB, 2+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
+SELECT 
+Month
+,'Sub-ICB' AS OrgType
+,RegionNameComm AS Region
+,[Sub-ICBName] AS OrgName
+,[Sub-ICBCode] AS OrgCode
+,'2+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+WHERE InternetEnabledTherapy_Count>=2
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[Sub-ICBName]
+	,[Sub-ICBCode]
+	,IntEnabledTherProg
+
+--Provider, 1+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
+SELECT 
+Month
+,'Provider' AS OrgType
+,RegionNameProv AS Region
+,[ProviderName] AS OrgName
+,[ProviderCode] AS OrgCode
+,'1+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+WHERE InternetEnabledTherapy_Count>=1
+GROUP BY 
+	Month
+	,RegionNameProv
+	,[ProviderName]
+	,[ProviderCode]
+	,IntEnabledTherProg
+
+--Provider, No IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
+SELECT 
+Month
+,'Provider' AS OrgType
+,RegionNameProv AS Region
+,[ProviderName] AS OrgName
+,[ProviderCode] AS OrgCode
+,'No IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
+GROUP BY 
+	Month
+	,RegionNameProv
+	,[ProviderName]
+	,[ProviderCode]
+	,IntEnabledTherProg
+
+--Provider, 2+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
+SELECT 
+Month
+,'Provider' AS OrgType
+,RegionNameProv AS Region
+,[ProviderName] AS OrgName
+,[ProviderCode] AS OrgCode
+,'2+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+WHERE InternetEnabledTherapy_Count>=2
+GROUP BY 
+	Month
+	,RegionNameProv
+	,[ProviderName]
+	,[ProviderCode]
+	,IntEnabledTherProg
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------
+
 
 
 --For all contacts average therapist time per contact
@@ -433,39 +794,7 @@ AND ca.AuditId=c.AuditId
 WHERE l.IsLatest = 1
 )_
 
-IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_Base2]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_Base2]
-SELECT DISTINCT
-	b.Month
-	,b.PathwayID
-
-	--Number of Appointments
-    ,b.InternetEnabledTherapy_Count
-
-	--Contact dates
-	,i.StartDateIntEnabledTherLog
-
-	--Therapist Time
-	,i.DurationIntEnabledTher
-
-	,CASE WHEN i.LatestContactRank=1 OR i.LatestContactRank IS NULL THEN b.CompTreatFlag ELSE NULL 
-	END AS CompTreatFlag --Flag for completed treatment flag, where the discharge date is within the reporting period
-    
-    --Geography
-    ,b.[Sub-ICBCode]
-	,b.[Sub-ICBName]
-	,b.ICBCode
-	,b.ICBName
-	,b.RegionNameComm
-	,b.RegionCodeComm
-	,b.ProviderCode
-	,b.ProviderName
-	,b.RegionNameProv
-INTO [MHDInternal].[TEMP_TTAD_IET_Base2]
-FROM [MHDInternal].[TEMP_TTAD_IET_Base] b
-LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_IETContacts] i ON i.PathwayID = b.PathwayID 
-
-
-IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_Base3]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_Base3]
+IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 SELECT DISTINCT
 	b.Month
 	,b.PathwayID
@@ -478,6 +807,8 @@ SELECT DISTINCT
 
 	--Therapist Time
 	,ca.ClinContactDurOfCareAct
+
+	,IntEnabledTherProg
 
 	,CASE WHEN ca.LatestContactRank=1 OR ca.LatestContactRank IS NULL THEN b.CompTreatFlag ELSE NULL 
 	END AS CompTreatFlag --Flag for completed treatment flag, where the discharge date is within the reporting period
@@ -492,12 +823,13 @@ SELECT DISTINCT
 	,b.ProviderCode
 	,b.ProviderName
 	,b.RegionNameProv
-INTO [MHDInternal].[TEMP_TTAD_IET_Base3]
+INTO [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 FROM [MHDInternal].[TEMP_TTAD_IET_Base] b
 LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_AllContacts] ca ON ca.PathwayID=b.PathwayID
 
 
-IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AvgTherapistTime]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AvgTherapistTime]
+----------
+IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 --National, IET 1+
 SELECT 
 Month
@@ -506,38 +838,303 @@ Month
 ,CAST('England' AS VARCHAR(255)) AS OrgName
 ,CAST('ENG' AS VARCHAR(50)) AS OrgCode
 ,CAST('1+ IET' AS VARCHAR(50)) AS AppointmentType
-,InternetEnabledTherapy_Count
-,DurationIntEnabledTher AS AvgIETTherapistTime
-,ClinContactDurOfCareAct AS ClinicalTherapistTime
---,ConsultationMedium
-,IntegratedSoftwareInd
-,EndCode
-,EndCodeDescription
-,ProblemDescriptor
-,WaitRefToFirstAssess
-,WaitRefToFirstTherapy
-,WaitFirstTherapyToSecondTherapy
-,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
-,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
-,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
-,SUM(CompTreatFlagRelRecFlags) AS CompTreatFlagRelRecFlags
+,IntEnabledTherProg
+,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
-INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgTherapistTime]
-FROM [MHDInternal].[TEMP_TTAD_IET_Base2]
+INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
 	Month
-	,InternetEnabledTherapy_Count
 	,IntEnabledTherProg
-	,DurationIntEnabledTher
-	,ClinContactDurOfCareAct
-	--,ConsultationMedium
-	,IntegratedSoftwareInd
-	,EndCode
-	,EndCodeDescription
-	,ProblemDescriptor
-	,WaitRefToFirstAssess
-	,WaitRefToFirstTherapy
-	,WaitFirstTherapyToSecondTherapy
 GO
 
+--National, No IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
+SELECT 
+Month
+,'National' AS OrgType
+,'All Regions' AS Region
+,'England' AS OrgName
+,'ENG' AS OrgCode
+,'No IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
+WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
+GROUP BY 
+	Month
+	,IntEnabledTherProg
+
+
+--National, IET 2+
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
+SELECT 
+Month
+,'National' AS OrgType
+,'All Regions' AS Region
+,'England' AS OrgName
+,'ENG' AS OrgCode
+,'2+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
+WHERE InternetEnabledTherapy_Count>=2
+GROUP BY 
+	Month
+	,IntEnabledTherProg
+
+--Region, 1+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
+SELECT 
+Month
+,'Region' AS OrgType
+,RegionNameComm AS Region
+,RegionNameComm AS OrgName
+,RegionCodeComm AS OrgCode
+,'1+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
+WHERE InternetEnabledTherapy_Count>=1
+GROUP BY 
+	Month
+	,RegionNameComm
+	,RegionCodeComm
+	,IntEnabledTherProg
+
+
+--Region, No IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
+SELECT 
+Month
+,'Region' AS OrgType
+,RegionNameComm AS Region
+,RegionNameComm  AS OrgName
+,RegionCodeComm  AS OrgCode
+,'No IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
+WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
+GROUP BY 
+	Month
+	,RegionNameComm
+	,RegionCodeComm 
+	,IntEnabledTherProg
+
+
+--Region, 2+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
+SELECT 
+Month
+,'Region' AS OrgType
+,RegionNameComm AS Region
+,RegionNameComm  AS OrgName
+,RegionCodeComm  AS OrgCode
+,'2+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
+WHERE InternetEnabledTherapy_Count>=2
+GROUP BY 
+	Month
+	,RegionNameComm
+	,RegionCodeComm 
+	,IntEnabledTherProg
+
+--ICB, 1+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
+SELECT 
+Month
+,'ICB' AS OrgType
+,RegionNameComm AS Region
+,[ICBName] AS OrgName
+,[ICBCode] AS OrgCode
+,'1+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
+WHERE InternetEnabledTherapy_Count>=1
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[ICBName]
+	,[ICBCode]
+	,IntEnabledTherProg
+
+--ICB, No IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
+SELECT 
+Month
+,'ICB' AS OrgType
+,RegionNameComm AS Region
+,[ICBName] AS OrgName
+,[ICBCode] AS OrgCode
+,'No IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
+WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[ICBName]
+	,[ICBCode]
+	,IntEnabledTherProg
+
+
+--ICB, 2+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
+SELECT 
+Month
+,'ICB' AS OrgType
+,RegionNameComm AS Region
+,[ICBName] AS OrgName
+,[ICBCode] AS OrgCode
+,'2+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
+WHERE InternetEnabledTherapy_Count>=2
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[ICBName]
+	,[ICBCode]
+	,IntEnabledTherProg
+
+
+--Sub-ICB, 1+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
+SELECT 
+Month
+,'Sub-ICB' AS OrgType
+,RegionNameComm AS Region
+,[Sub-ICBName] AS OrgName
+,[Sub-ICBCode] AS OrgCode
+,'1+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
+WHERE InternetEnabledTherapy_Count>=1
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[Sub-ICBName]
+	,[Sub-ICBCode]
+	,IntEnabledTherProg
+
+--Sub-ICB, No IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
+SELECT 
+Month
+,'Sub-ICB' AS OrgType
+,RegionNameComm AS Region
+,[Sub-ICBName] AS OrgName
+,[Sub-ICBCode] AS OrgCode
+,'No IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
+WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[Sub-ICBName]
+	,[Sub-ICBCode]
+	,IntEnabledTherProg
+
+--Sub-ICB, 2+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
+SELECT 
+Month
+,'Sub-ICB' AS OrgType
+,RegionNameComm AS Region
+,[Sub-ICBName] AS OrgName
+,[Sub-ICBCode] AS OrgCode
+,'2+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
+WHERE InternetEnabledTherapy_Count>=2
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[Sub-ICBName]
+	,[Sub-ICBCode]
+	,IntEnabledTherProg
+
+--Provider, 1+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
+SELECT 
+Month
+,'Provider' AS OrgType
+,RegionNameProv AS Region
+,[ProviderName] AS OrgName
+,[ProviderCode] AS OrgCode
+,'1+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
+WHERE InternetEnabledTherapy_Count>=1
+GROUP BY 
+	Month
+	,RegionNameProv
+	,[ProviderName]
+	,[ProviderCode]
+	,IntEnabledTherProg
+
+--Provider, No IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
+SELECT 
+Month
+,'Provider' AS OrgType
+,RegionNameProv AS Region
+,[ProviderName] AS OrgName
+,[ProviderCode] AS OrgCode
+,'No IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
+WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
+GROUP BY 
+	Month
+	,RegionNameProv
+	,[ProviderName]
+	,[ProviderCode]
+	,IntEnabledTherProg
+
+--Provider, 2+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
+SELECT 
+Month
+,'Provider' AS OrgType
+,RegionNameProv AS Region
+,[ProviderName] AS OrgName
+,[ProviderCode] AS OrgCode
+,'2+ IET' AS AppointmentType
+,IntEnabledTherProg
+,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
+WHERE InternetEnabledTherapy_Count>=2
+GROUP BY 
+	Month
+	,RegionNameProv
+	,[ProviderName]
+	,[ProviderCode]
+	,IntEnabledTherProg
