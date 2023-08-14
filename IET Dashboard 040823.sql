@@ -1,3 +1,4 @@
+-----------------
 --For clinical time for just IET
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_TypeAndDuration]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration]
 SELECT  
@@ -174,6 +175,31 @@ SELECT DISTINCT
 		ELSE 'Other' 
 	END AS 'ProblemDescriptor'
     
+	--Patient Experience Questionnaire
+	,CASE WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108'
+		,'747861000000100','747871000000107','747881000000109','904691000000103','747891000000106')
+		THEN s2.[Term] ELSE 'Missing/invalid'
+	END AS 'Question'
+	,CASE 
+		-- Treatment
+		WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('0') THEN 'Never'
+		WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('1') THEN 'Rarely'
+		WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('2') THEN 'Sometimes'
+		WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('3') THEN 'Most of the time'
+		WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('4') THEN 'All of the time'
+		WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('NA') THEN 'Not applicable'
+		--Assessment
+		WHEN [CodedAssToolType] IN('747861000000100','747871000000107','747881000000109','904691000000103') AND [PersScore] IN ('Y') THEN 'Yes'
+		WHEN [CodedAssToolType] IN('747861000000100','747871000000107','747881000000109','904691000000103') AND [PersScore] IN ('N') THEN 'No'
+		WHEN [CodedAssToolType] IN('747861000000100','747871000000107','747881000000109','904691000000103') AND [PersScore] IN ('NA') THEN 'Not applicable'
+		--Satifaction
+		WHEN [CodedAssToolType] IN('747891000000106') AND [PersScore] IN ('0') THEN 'Not satisfied at all'
+		WHEN [CodedAssToolType] IN('747891000000106') AND [PersScore] IN ('1') THEN 'Not satisfied'
+		WHEN [CodedAssToolType] IN('747891000000106') AND [PersScore] IN ('2') THEN 'Neither satisfied or Dis-satisfied'
+		WHEN [CodedAssToolType] IN('747891000000106') AND [PersScore] IN ('3') THEN 'Mostly satisfied'
+		WHEN [CodedAssToolType] IN('747891000000106') AND [PersScore] IN ('4') THEN 'Completely satisfied'
+	END AS 'Answer'
+
     --Geography
     ,ch.Organisation_Code as 'Sub-ICBCode'
 	,ch.Organisation_Name as 'Sub-ICBName'
@@ -195,7 +221,8 @@ FROM [MESH_IAPT].[IDS101referral] r
     LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration] i ON i.PathwayID = r.PathwayID
 	LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_NoIETDuration] ca ON ca.PathwayID=r.PathwayID
 	-- LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_ConsMed] m ON m.PathwayID=r.PathwayID
-
+	LEFT JOIN [NHSE_IAPT_V2].[dbo].[IDS607_CodedScoredAssessmentCareActivity] csa ON r.PathwayID = csa.PathwayID AND l.AuditId = csa.AuditId
+    LEFT JOIN [NHSE_UKHF].[SNOMED].[vw_Descriptions_SCD] s2 ON CodedAssToolType = CAST(s2.[Concept_ID] AS VARCHAR) AND s2.Type_ID = 900000000000003001 AND s2.Is_Latest = 1 AND s2.Active = 1
 WHERE r.UsePathway_Flag = 'True' 
 		AND l.IsLatest = 1	--To get the latest data
 		AND r.CompletedTreatment_Flag = 'True'	--Data is filtered to only look at those who have completed a course of treatment
