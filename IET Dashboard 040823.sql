@@ -13,7 +13,7 @@ WHERE l.IsLatest = 1
 GROUP BY i.PathwayID, i.IntEnabledTherProg, i.IntegratedSoftwareInd
 
 
---For Clinical Time including IET
+--For clinical time including IET
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_NoIETDuration]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_NoIETDuration]
 SELECT  
     ca.PathwayID
@@ -58,12 +58,14 @@ GROUP BY ca.PathwayID
 -- )_
 -- GROUP BY PathwayID
 
-
+------------------------------------------------------------------------------------------------------------------
+------------------------------------------Base table 
+--This creates a base table with one record per row which is then aggregated to produce [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 DECLARE @PeriodStart DATE
 DECLARE @PeriodEnd DATE 
 --For refreshing, the offset for getting the period start and end should be -1 to get the latest refreshed month
-SET @PeriodStart = (SELECT DATEADD(MONTH,-1,MAX([ReportingPeriodStartDate])) FROM [mesh_IAPT].[IsLatest_SubmissionID])
-SET @PeriodEnd = (SELECT eomonth(DATEADD(MONTH,-1,MAX([ReportingPeriodEndDate]))) FROM [mesh_IAPT].[IsLatest_SubmissionID])
+SET @PeriodStart = (SELECT DATEADD(MONTH,-2,MAX([ReportingPeriodStartDate])) FROM [mesh_IAPT].[IsLatest_SubmissionID])
+SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-2,MAX([ReportingPeriodEndDate]))) FROM [mesh_IAPT].[IsLatest_SubmissionID])
 
 --The offset needs to be set for September 2020 (e.g. @PeriodStart -30 = -31 which is the offset of September 2020)
 DECLARE @Offset int
@@ -172,34 +174,9 @@ SELECT DISTINCT
 		WHEN (r.PresentingComplaintHigherCategory = 'Anxiety and stress related disorders (Total)' OR r.[PrimaryPresentingComplaint] = 'Anxiety and stress related disorders (Total)') AND (r.PresentingComplaintLowerCategory = 'F452 Hypochondriacal Disorders' OR [SecondaryPresentingComplaint] = 'F452 Hypochondriacal Disorders') THEN 'F452 - Hypochondrial disorder'
 		WHEN (r.PresentingComplaintHigherCategory = 'Anxiety and stress related disorders (Total)' OR r.[PrimaryPresentingComplaint] = 'Anxiety and stress related disorders (Total)') AND (r.PresentingComplaintLowerCategory = 'Other F40-F43 code' OR [SecondaryPresentingComplaint] = 'Other F40-F43 code') THEN 'Other F40 to 43 - Other Anxiety'
 		WHEN (r.PresentingComplaintHigherCategory = 'Anxiety and stress related disorders (Total)' OR r.[PrimaryPresentingComplaint] = 'Anxiety and stress related disorders (Total)') AND (r.PresentingComplaintLowerCategory IS NULL OR [SecondaryPresentingComplaint] IS NULL) THEN 'No Code' 
-		ELSE 'Other' 
+		ELSE 'Other'
 	END AS 'ProblemDescriptor'
     
-	--Patient Experience Questionnaire
-	,CASE WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108'
-		,'747861000000100','747871000000107','747881000000109','904691000000103','747891000000106')
-		THEN s2.[Term] ELSE 'Missing/invalid'
-	END AS 'Question'
-	,CASE 
-		-- Treatment
-		WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('0') THEN 'Never'
-		WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('1') THEN 'Rarely'
-		WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('2') THEN 'Sometimes'
-		WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('3') THEN 'Most of the time'
-		WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('4') THEN 'All of the time'
-		WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('NA') THEN 'Not applicable'
-		--Assessment
-		WHEN [CodedAssToolType] IN('747861000000100','747871000000107','747881000000109','904691000000103') AND [PersScore] IN ('Y') THEN 'Yes'
-		WHEN [CodedAssToolType] IN('747861000000100','747871000000107','747881000000109','904691000000103') AND [PersScore] IN ('N') THEN 'No'
-		WHEN [CodedAssToolType] IN('747861000000100','747871000000107','747881000000109','904691000000103') AND [PersScore] IN ('NA') THEN 'Not applicable'
-		--Satifaction
-		WHEN [CodedAssToolType] IN('747891000000106') AND [PersScore] IN ('0') THEN 'Not satisfied at all'
-		WHEN [CodedAssToolType] IN('747891000000106') AND [PersScore] IN ('1') THEN 'Not satisfied'
-		WHEN [CodedAssToolType] IN('747891000000106') AND [PersScore] IN ('2') THEN 'Neither satisfied or Dis-satisfied'
-		WHEN [CodedAssToolType] IN('747891000000106') AND [PersScore] IN ('3') THEN 'Mostly satisfied'
-		WHEN [CodedAssToolType] IN('747891000000106') AND [PersScore] IN ('4') THEN 'Completely satisfied'
-	END AS 'Answer'
-
     --Geography
     ,ch.Organisation_Code as 'Sub-ICBCode'
 	,ch.Organisation_Name as 'Sub-ICBName'
@@ -213,23 +190,29 @@ SELECT DISTINCT
 	--,ph.Region_Code as 'RegionCodeProv'
 INTO [MHDInternal].[TEMP_TTAD_IET_Base]
 FROM [MESH_IAPT].[IDS101referral] r
-    INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON r.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND r.[AuditId] = l.[AuditId]
-    LEFT JOIN [MHDInternal].[REFERENCE_CCG_2020_Lookup] c ON r.OrgIDComm = c.IC_CCG					
-	LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON c.CCG21 = ch.Organisation_Code AND ch.Effective_To IS NULL
-	LEFT JOIN [Reporting].[Ref_ODS_Provider_Hierarchies_ICB] ph ON r.OrgID_Provider = ph.Organisation_Code AND ph.Effective_To IS NULL
-	--Three tables for getting the up-to-date Sub-ICB/ICB/Region/Provider names/codes
-    LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration] i ON i.PathwayID = r.PathwayID
-	LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_NoIETDuration] ca ON ca.PathwayID=r.PathwayID
-	-- LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_ConsMed] m ON m.PathwayID=r.PathwayID
-	LEFT JOIN [NHSE_IAPT_V2].[dbo].[IDS607_CodedScoredAssessmentCareActivity] csa ON r.PathwayID = csa.PathwayID AND l.AuditId = csa.AuditId
-    LEFT JOIN [NHSE_UKHF].[SNOMED].[vw_Descriptions_SCD] s2 ON CodedAssToolType = CAST(s2.[Concept_ID] AS VARCHAR) AND s2.Type_ID = 900000000000003001 AND s2.Is_Latest = 1 AND s2.Active = 1
+
+INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON r.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND r.[AuditId] = l.[AuditId]
+--Three tables for getting the up-to-date Sub-ICB/ICB/Region/Provider names/codes:
+LEFT JOIN [MHDInternal].[REFERENCE_CCG_2020_Lookup] c ON r.OrgIDComm = c.IC_CCG					
+LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON c.CCG21 = ch.Organisation_Code AND ch.Effective_To IS NULL
+LEFT JOIN [Reporting].[Ref_ODS_Provider_Hierarchies_ICB] ph ON r.OrgID_Provider = ph.Organisation_Code AND ph.Effective_To IS NULL
+
+LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration] i ON i.PathwayID = r.PathwayID
+LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_NoIETDuration] ca ON ca.PathwayID=r.PathwayID
+
 WHERE r.UsePathway_Flag = 'True' 
-		AND l.IsLatest = 1	--To get the latest data
-		AND r.CompletedTreatment_Flag = 'True'	--Data is filtered to only look at those who have completed a course of treatment
-		AND r.ServDischDate BETWEEN l.ReportingPeriodStartDate AND l.ReportingPeriodEndDate	
-		AND l.[ReportingPeriodStartDate] BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart	--for refresh, the offset should be 0 as only want the data for the latest month
-		
-		
+	AND l.IsLatest = 1	--To get the latest data
+	AND r.CompletedTreatment_Flag = 'True'	--Data is filtered to only look at those who have completed a course of treatment
+	AND r.ServDischDate BETWEEN l.ReportingPeriodStartDate AND l.ReportingPeriodEndDate	
+	AND l.[ReportingPeriodStartDate] BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart	--for refresh, the offset should be 0 as only want the data for the latest month
+
+------------------------------------------------------------------------------------	
+----------------------------------------Aggregated Main Table------------------------
+--This table aggregates [MHDInternal].[TEMP_TTAD_IET_Base] table to get the number of PathwayIDs with the recovery flag,
+-- not caseness flag, reliable improvement flag, completed treatment flag, and both the recovery and reliable improvement flag.
+--This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Appointment Types (1+ IET, 2+ IET and No IET),
+--by IET Therapy Types, by Integrated Software Indicator, by End Codes, and by Problem Descriptors
+
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_Main]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 --National, IET 1+
 SELECT 
@@ -716,4 +699,471 @@ GROUP BY
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
+
+-------------------------------------------------------------------------------
+--For Patient Experience Questionnaire (PEQ)
+DECLARE @PeriodStart DATE
+DECLARE @PeriodEnd DATE 
+--For refreshing, the offset for getting the period start and end should be -1 to get the latest refreshed month
+SET @PeriodStart = (SELECT DATEADD(MONTH,-2,MAX([ReportingPeriodStartDate])) FROM [mesh_IAPT].[IsLatest_SubmissionID])
+SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-2,MAX([ReportingPeriodEndDate]))) FROM [mesh_IAPT].[IsLatest_SubmissionID])
+
+--The offset needs to be set for September 2020 (e.g. @PeriodStart -30 = -31 which is the offset of September 2020)
+DECLARE @Offset int
+SET @Offset=-31
+
+SET DATEFIRST 1
+
+PRINT @PeriodStart
+PRINT @PeriodEnd
+IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_BasePEQ]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+SELECT DISTINCT 
+CAST(DATENAME(m, l.ReportingPeriodStartDate) + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR) AS DATE) as Month
+,r.PathwayID
+,CASE WHEN (i.IntEnabledTherProg LIKE 'SilverCloud%' OR i.IntEnabledTherProg LIKE  'Slvrcld%' ) THEN 'SilverCloud'
+		WHEN (i.IntEnabledTherProg LIKE 'Mnddstrct%' OR i.IntEnabledTherProg LIKE 'Minddistrict%') THEN 'Minddistrict'
+		WHEN i.IntEnabledTherProg LIKE 'iCT%' THEN 'iCT'
+		WHEN i.IntEnabledTherProg LIKE 'OCD%' THEN 'OCD-NET'
+		WHEN i.IntEnabledTherProg IS NULL THEN 'No IET'
+		ELSE i.IntEnabledTherProg
+		END IntEnabledTherProg
+,r.InternetEnabledTherapy_Count
+,CASE WHEN s2.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 1 score (observable entity)' THEN 'Assessment Question 1'
+	WHEN s2.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 2 score (observable entity)' THEN 'Assessment Question 2'
+	WHEN s2.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 3 score (observable entity)' THEN 'Assessment Question 3'
+	WHEN s2.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 4 score (observable entity)' THEN 'Assessment Question 4'
+	WHEN s2.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire satisfaction question 1 score (observable entity)' THEN 'Satisfaction Assessment Question 1'
+	WHEN s2.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 1 score (observable entity)' THEN 'Treatment Question 1'
+	WHEN s2.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 2 score (observable entity)' THEN 'Treatment Question 2'
+	WHEN s2.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 3 score (observable entity)' THEN 'Treatment Question 3'
+	WHEN s2.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 4 score (observable entity)' THEN 'Treatment Question 4'
+	WHEN s2.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 5 score (observable entity)' THEN 'Treatment Question 5'
+	WHEN s2.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 6 score (observable entity)' THEN 'Treatment Question 6'
+	ELSE NULL		
+END AS 'Question'
+,CASE 
+	-- Treatment
+	WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('0') THEN 'Never'
+	WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('1') THEN 'Rarely'
+	WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('2') THEN 'Sometimes'
+	WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('3') THEN 'Most of the time'
+	WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('4') THEN 'All of the time'
+	WHEN [CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108') AND [PersScore] IN ('NA') THEN 'Not applicable'
+	--Assessment
+	WHEN [CodedAssToolType] IN('747861000000100','747871000000107','747881000000109','904691000000103') AND [PersScore] IN ('Y') THEN 'Yes'
+	WHEN [CodedAssToolType] IN('747861000000100','747871000000107','747881000000109','904691000000103') AND [PersScore] IN ('N') THEN 'No'
+	WHEN [CodedAssToolType] IN('747861000000100','747871000000107','747881000000109','904691000000103') AND [PersScore] IN ('NA') THEN 'Not applicable'
+	--Satifaction
+	WHEN [CodedAssToolType] IN('747891000000106') AND [PersScore] IN ('0') THEN 'Not satisfied at all'
+	WHEN [CodedAssToolType] IN('747891000000106') AND [PersScore] IN ('1') THEN 'Not satisfied'
+	WHEN [CodedAssToolType] IN('747891000000106') AND [PersScore] IN ('2') THEN 'Neither satisfied or Dis-satisfied'
+	WHEN [CodedAssToolType] IN('747891000000106') AND [PersScore] IN ('3') THEN 'Mostly satisfied'
+	WHEN [CodedAssToolType] IN('747891000000106') AND [PersScore] IN ('4') THEN 'Completely satisfied'
+END AS 'Answer'
+
+,CASE WHEN (r.ServDischDate BETWEEN l.ReportingPeriodStartDate AND l.ReportingPeriodEndDate) AND r.CompletedTreatment_Flag = 'True' 
+		AND r.PathwayID IS NOT NULL THEN 1 ELSE 0
+	END AS CompTreatFlag --Flag for completed treatment flag, where the discharge date is within the reporting period
+    
+--Geography
+    ,ch.Organisation_Code as 'Sub-ICBCode'
+	,ch.Organisation_Name as 'Sub-ICBName'
+	,ch.STP_Code as 'ICBCode'
+	,ch.STP_Name as 'ICBName'
+	,ch.Region_Name as 'RegionNameComm'
+	,ch.Region_Code as 'RegionCodeComm'
+	,ph.Organisation_Code as 'ProviderCode'
+	,ph.Organisation_Name as 'ProviderName'
+	,ph.Region_Name as 'RegionNameProv'
+INTO [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+FROM [MESH_IAPT].[IDS101referral] r
+INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON r.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND r.[AuditId] = l.[AuditId]
+--Three tables for getting the up-to-date Sub-ICB/ICB/Region/Provider names/codes:
+LEFT JOIN [MHDInternal].[REFERENCE_CCG_2020_Lookup] c ON r.OrgIDComm = c.IC_CCG					
+LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON c.CCG21 = ch.Organisation_Code AND ch.Effective_To IS NULL
+LEFT JOIN [Reporting].[Ref_ODS_Provider_Hierarchies_ICB] ph ON r.OrgID_Provider = ph.Organisation_Code AND ph.Effective_To IS NULL
+
+LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration] i ON i.PathwayID = r.PathwayID
+LEFT JOIN [mesh_IAPT].[IDS607codedscoreassessmentact] csa ON r.PathwayID=csa.PathwayID AND r.AuditId=csa.AuditId
+AND csa.[CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108'
+	,'747861000000100','747871000000107','747881000000109','904691000000103','747891000000106')
+	
+LEFT JOIN [UKHD_SNOMED].[Descriptions_SCD] s2 ON CodedAssToolType = CAST(s2.[Concept_ID] AS VARCHAR) 
+	AND s2.Type_ID = 900000000000003001 AND s2.Is_Latest = 1 AND s2.Active = 1
+WHERE l.IsLatest = 1	--To get the latest data
+	AND UsePathway_Flag='True'
+	AND r.CompletedTreatment_Flag = 'True'	--Data is filtered to only look at those who have completed a course of treatment
+	AND r.ServDischDate BETWEEN l.ReportingPeriodStartDate AND l.ReportingPeriodEndDate	
+	AND l.[ReportingPeriodStartDate] BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart	--for refresh, the offset should be 0 as only want the data for the latest month
+
+
+
+IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_PEQ]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+--National, IET 1+
+SELECT 
+Month
+,CAST('National' AS VARCHAR(50)) AS OrgType
+,CAST('All Regions' AS VARCHAR(255)) AS Region
+,CAST('England' AS VARCHAR(255)) AS OrgName
+,CAST('ENG' AS VARCHAR(50)) AS OrgCode
+,CAST('1+ IET' AS VARCHAR(50)) AS AppointmentType
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
+,IntEnabledTherProg
+,Question
+,Answer
+,SUM(CompTreatFlag) AS CompTreatFlag
+INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+WHERE InternetEnabledTherapy_Count>=1
+GROUP BY 
+	Month
+	,IntEnabledTherProg
+	,Question
+	,Answer
+GO
+--National, No IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+SELECT 
+Month
+,CAST('National' AS VARCHAR(50)) AS OrgType
+,CAST('All Regions' AS VARCHAR(255)) AS Region
+,CAST('England' AS VARCHAR(255)) AS OrgName
+,CAST('ENG' AS VARCHAR(50)) AS OrgCode
+,'No IET' AS AppointmentType
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
+,IntEnabledTherProg
+,Question
+,Answer
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
+GROUP BY 
+	Month
+	,IntEnabledTherProg
+	,Question
+	,Answer
+
+--National, IET 2+
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+SELECT 
+Month
+,CAST('National' AS VARCHAR(50)) AS OrgType
+,CAST('All Regions' AS VARCHAR(255)) AS Region
+,CAST('England' AS VARCHAR(255)) AS OrgName
+,CAST('ENG' AS VARCHAR(50)) AS OrgCode
+,'2+ IET' AS AppointmentType
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
+,IntEnabledTherProg
+,Question
+,Answer
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+WHERE InternetEnabledTherapy_Count>=2
+GROUP BY 
+	Month
+	,IntEnabledTherProg
+	,Question
+	,Answer
+
+--Region, 1+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+SELECT 
+Month
+,'Region' AS OrgType
+,RegionNameComm AS Region
+,RegionNameComm AS OrgName
+,RegionCodeComm AS OrgCode
+,'1+ IET' AS AppointmentType
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
+,IntEnabledTherProg
+,Question
+,Answer
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+WHERE InternetEnabledTherapy_Count>=1
+GROUP BY 
+	Month
+	,RegionNameComm
+	,RegionCodeComm
+	,IntEnabledTherProg
+	,Question
+	,Answer
+
+--Region, No IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+SELECT 
+Month
+,'Region' AS OrgType
+,RegionNameComm AS Region
+,RegionNameComm  AS OrgName
+,RegionCodeComm  AS OrgCode
+,'No IET' AS AppointmentType
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
+,IntEnabledTherProg
+,Question
+,Answer
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
+GROUP BY 
+	Month
+	,RegionNameComm
+	,RegionCodeComm 
+	,IntEnabledTherProg
+	,Question
+	,Answer
+
+--Region, 2+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+SELECT 
+Month
+,'Region' AS OrgType
+,RegionNameComm AS Region
+,RegionNameComm  AS OrgName
+,RegionCodeComm  AS OrgCode
+,'2+ IET' AS AppointmentType
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
+,IntEnabledTherProg
+,Question
+,Answer
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+WHERE InternetEnabledTherapy_Count>=2
+GROUP BY 
+	Month
+	,RegionNameComm
+	,RegionCodeComm 
+	,IntEnabledTherProg
+	,Question
+	,Answer
+
+
+--ICB, 1+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+SELECT 
+Month
+,'ICB' AS OrgType
+,RegionNameComm AS Region
+,[ICBName] AS OrgName
+,[ICBCode] AS OrgCode
+,'1+ IET' AS AppointmentType
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
+,IntEnabledTherProg
+,Question
+,Answer
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+WHERE InternetEnabledTherapy_Count>=1
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[ICBName]
+	,[ICBCode]
+	,IntEnabledTherProg
+	,Question
+	,Answer
+
+--ICB, No IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+SELECT 
+Month
+,'ICB' AS OrgType
+,RegionNameComm AS Region
+,[ICBName] AS OrgName
+,[ICBCode] AS OrgCode
+,'No IET' AS AppointmentType
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
+,IntEnabledTherProg
+,Question
+,Answer
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[ICBName]
+	,[ICBCode]
+	,IntEnabledTherProg
+	,Question
+	,Answer
+
+
+--ICB, 2+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+SELECT 
+Month
+,'ICB' AS OrgType
+,RegionNameComm AS Region
+,[ICBName] AS OrgName
+,[ICBCode] AS OrgCode
+,'2+ IET' AS AppointmentType
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
+,IntEnabledTherProg
+,Question
+,Answer
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+WHERE InternetEnabledTherapy_Count>=2
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[ICBName]
+	,[ICBCode]
+	,IntEnabledTherProg
+	,Question
+	,Answer
+
+--Sub-ICB, 1+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+SELECT 
+Month
+,'Sub-ICB' AS OrgType
+,RegionNameComm AS Region
+,[Sub-ICBName] AS OrgName
+,[Sub-ICBCode] AS OrgCode
+,'1+ IET' AS AppointmentType
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
+,IntEnabledTherProg
+,Question
+,Answer
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+WHERE InternetEnabledTherapy_Count>=1
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[Sub-ICBName]
+	,[Sub-ICBCode]
+	,IntEnabledTherProg
+	,Question
+	,Answer
+
+--Sub-ICB, No IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+SELECT 
+Month
+,'Sub-ICB' AS OrgType
+,RegionNameComm AS Region
+,[Sub-ICBName] AS OrgName
+,[Sub-ICBCode] AS OrgCode
+,'No IET' AS AppointmentType
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
+,IntEnabledTherProg
+,Question
+,Answer
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[Sub-ICBName]
+	,[Sub-ICBCode]
+	,IntEnabledTherProg
+	,Question
+	,Answer
+
+--Sub-ICB, 2+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+SELECT 
+Month
+,'Sub-ICB' AS OrgType
+,RegionNameComm AS Region
+,[Sub-ICBName] AS OrgName
+,[Sub-ICBCode] AS OrgCode
+,'2+ IET' AS AppointmentType
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
+,IntEnabledTherProg
+,Question
+,Answer
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+WHERE InternetEnabledTherapy_Count>=2
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[Sub-ICBName]
+	,[Sub-ICBCode]
+	,IntEnabledTherProg
+	,Question
+	,Answer
+
+--Provider, 1+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+SELECT 
+Month
+,'Provider' AS OrgType
+,RegionNameProv AS Region
+,[ProviderName] AS OrgName
+,[ProviderCode] AS OrgCode
+,'1+ IET' AS AppointmentType
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
+,IntEnabledTherProg
+,Question
+,Answer
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+WHERE InternetEnabledTherapy_Count>=1
+GROUP BY 
+	Month
+	,RegionNameProv
+	,[ProviderName]
+	,[ProviderCode]
+	,IntEnabledTherProg
+	,Question
+	,Answer
+
+
+--Provider, No IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+SELECT 
+Month
+,'Provider' AS OrgType
+,RegionNameProv AS Region
+,[ProviderName] AS OrgName
+,[ProviderCode] AS OrgCode
+,'No IET' AS AppointmentType
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
+,IntEnabledTherProg
+,Question
+,Answer
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
+GROUP BY 
+	Month
+	,RegionNameProv
+	,[ProviderName]
+	,[ProviderCode]
+	,IntEnabledTherProg
+	,Question
+	,Answer
+
+--Provider, 2+ IET
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+SELECT 
+Month
+,'Provider' AS OrgType
+,RegionNameProv AS Region
+,[ProviderName] AS OrgName
+,[ProviderCode] AS OrgCode
+,'2+ IET' AS AppointmentType
+,SUM(InternetEnabledTherapy_Count) AS InternetEnabledTherapy_Count
+,IntEnabledTherProg
+,Question
+,Answer
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+WHERE InternetEnabledTherapy_Count>=2
+GROUP BY 
+	Month
+	,RegionNameProv
+	,[ProviderName]
+	,[ProviderCode]
+	,IntEnabledTherProg
+	,Question
+	,Answer
+
+	
 
