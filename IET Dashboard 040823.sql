@@ -182,6 +182,18 @@ SELECT DISTINCT
 		ELSE 'Other'
 	END AS 'ProblemDescriptor'
     
+	--Severity
+	,CASE WHEN r.GAD_FirstScore BETWEEN 0 AND 4 THEN 'Minimal Anxiety'
+		WHEN r.GAD_FirstScore BETWEEN 5 AND 9 THEN 'Mild Anxiety'
+		WHEN r.GAD_FirstScore BETWEEN 10 AND 14 THEN 'Moderate Anxiety'
+		WHEN r.GAD_FirstScore > 14 THEN 'Severe Anxiety' END AS 'GAD7 Cluster'
+
+	,CASE WHEN r.PHQ9_FirstScore BETWEEN 0 AND 4 THEN 'None-Minimal'
+		WHEN r.PHQ9_FirstScore BETWEEN 5 AND 9 THEN 'Mild'
+		WHEN r.PHQ9_FirstScore BETWEEN 10 AND 14 THEN 'Moderate'
+		WHEN r.PHQ9_FirstScore BETWEEN 15 AND 19 THEN 'Moderate Severe'
+		WHEN r.PHQ9_FirstScore BETWEEN 20 AND 27 THEN 'Severe' END AS 'PHQ9 Cluster'
+
     --Geography
     ,ch.Organisation_Code as 'Sub-ICBCode'
 	,ch.Organisation_Name as 'Sub-ICBName'
@@ -233,6 +245,8 @@ Month
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
+,[GAD7 Cluster]
+,[PHQ9 Cluster]
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -248,6 +262,8 @@ GROUP BY
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
+	,[GAD7 Cluster]
+	,[PHQ9 Cluster]
 GO
 --National, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -264,6 +280,8 @@ Month
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
+,[GAD7 Cluster]
+,[PHQ9 Cluster]
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -278,6 +296,8 @@ GROUP BY
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
+	,[GAD7 Cluster]
+	,[PHQ9 Cluster]
 
 --National, IET 2+
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -294,6 +314,8 @@ Month
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
+,[GAD7 Cluster]
+,[PHQ9 Cluster]
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -308,6 +330,8 @@ GROUP BY
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
+	,[GAD7 Cluster]
+	,[PHQ9 Cluster]
 
 --Region, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -324,6 +348,8 @@ Month
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
+,[GAD7 Cluster]
+,[PHQ9 Cluster]
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -340,6 +366,8 @@ GROUP BY
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
+	,[GAD7 Cluster]
+	,[PHQ9 Cluster]
 
 --Region, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -356,6 +384,8 @@ Month
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
+,[GAD7 Cluster]
+,[PHQ9 Cluster]
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -372,6 +402,8 @@ GROUP BY
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
+	,[GAD7 Cluster]
+	,[PHQ9 Cluster]
 
 --Region, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -388,6 +420,8 @@ Month
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
+,[GAD7 Cluster]
+,[PHQ9 Cluster]
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -404,6 +438,8 @@ GROUP BY
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
+	,[GAD7 Cluster]
+	,[PHQ9 Cluster]
 
 
 --ICB, 1+ IET
@@ -421,6 +457,8 @@ Month
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
+,[GAD7 Cluster]
+,[PHQ9 Cluster]
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -438,6 +476,8 @@ GROUP BY
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
+	,[GAD7 Cluster]
+	,[PHQ9 Cluster]
 
 --ICB, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -454,6 +494,8 @@ Month
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
+,[GAD7 Cluster]
+,[PHQ9 Cluster]
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -471,6 +513,8 @@ GROUP BY
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
+	,[GAD7 Cluster]
+	,[PHQ9 Cluster]
 
 
 --ICB, 2+ IET
@@ -488,6 +532,8 @@ Month
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
+,[GAD7 Cluster]
+,[PHQ9 Cluster]
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -505,6 +551,8 @@ GROUP BY
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
+	,[GAD7 Cluster]
+	,[PHQ9 Cluster]
 
 --Sub-ICB, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -521,6 +569,8 @@ Month
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
+,[GAD7 Cluster]
+,[PHQ9 Cluster]
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -538,6 +588,8 @@ GROUP BY
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
+	,[GAD7 Cluster]
+	,[PHQ9 Cluster]
 
 --Sub-ICB, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -554,6 +606,8 @@ Month
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
+,[GAD7 Cluster]
+,[PHQ9 Cluster]
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -571,6 +625,8 @@ GROUP BY
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
+	,[GAD7 Cluster]
+	,[PHQ9 Cluster]
 
 --Sub-ICB, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -587,6 +643,8 @@ Month
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
+,[GAD7 Cluster]
+,[PHQ9 Cluster]
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -604,6 +662,8 @@ GROUP BY
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
+	,[GAD7 Cluster]
+	,[PHQ9 Cluster]
 
 --Provider, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -620,6 +680,8 @@ Month
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
+,[GAD7 Cluster]
+,[PHQ9 Cluster]
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -637,6 +699,8 @@ GROUP BY
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
+	,[GAD7 Cluster]
+	,[PHQ9 Cluster]
 
 
 --Provider, No IET
@@ -654,6 +718,8 @@ Month
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
+,[GAD7 Cluster]
+,[PHQ9 Cluster]
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -671,6 +737,8 @@ GROUP BY
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
+	,[GAD7 Cluster]
+	,[PHQ9 Cluster]
 
 --Provider, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -687,6 +755,8 @@ Month
 ,EndCode
 ,EndCodeDescription
 ,ProblemDescriptor
+,[GAD7 Cluster]
+,[PHQ9 Cluster]
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -704,6 +774,8 @@ GROUP BY
 	,EndCode
 	,EndCodeDescription
 	,ProblemDescriptor
+	,[GAD7 Cluster]
+	,[PHQ9 Cluster]
 
 -------------------------------------------------------------------------------
 --For Patient Experience Questionnaire (PEQ)
