@@ -64,12 +64,12 @@ GROUP BY ca.PathwayID
 DECLARE @PeriodStart DATE
 DECLARE @PeriodEnd DATE 
 --For refreshing, the offset for getting the period start and end should be -1 to get the latest refreshed month
-SET @PeriodStart = (SELECT DATEADD(MONTH,-2,MAX([ReportingPeriodStartDate])) FROM [mesh_IAPT].[IsLatest_SubmissionID])
-SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-2,MAX([ReportingPeriodEndDate]))) FROM [mesh_IAPT].[IsLatest_SubmissionID])
+SET @PeriodStart = (SELECT DATEADD(MONTH,-1,MAX([ReportingPeriodStartDate])) FROM [mesh_IAPT].[IsLatest_SubmissionID])
+SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-1,MAX([ReportingPeriodEndDate]))) FROM [mesh_IAPT].[IsLatest_SubmissionID])
 
 --The offset needs to be set for September 2020 (e.g. @PeriodStart -30 = -31 which is the offset of September 2020)
 DECLARE @Offset int
-SET @Offset=-31
+SET @Offset=-32
 
 SET DATEFIRST 1
 
@@ -78,8 +78,13 @@ PRINT @PeriodEnd
 
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_Base]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_Base]
 SELECT DISTINCT
-	CAST(DATENAME(m, l.ReportingPeriodStartDate) + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR) AS DATE) as Month
-    ,l.ReportingPeriodStartDate
+	CAST(DATENAME(m, l.ReportingPeriodStartDate) + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR) AS DATE) AS Month
+    ,CASE WHEN DATENAME(q, l.ReportingPeriodStartDate)=1 THEN 'Q4' + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR)
+    WHEN DATENAME(q, l.ReportingPeriodStartDate)=2 THEN 'Q1' + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR)
+    WHEN DATENAME(q, l.ReportingPeriodStartDate)=3 THEN 'Q2' + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR)
+    WHEN DATENAME(q, l.ReportingPeriodStartDate)=4 THEN 'Q3' + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR)
+	END AS Quarter	
+	,l.ReportingPeriodStartDate
 	,l.ReportingPeriodEndDate
 	,r.PathwayID
 	,r.Unique_MonthID
@@ -705,12 +710,12 @@ GROUP BY
 DECLARE @PeriodStart DATE
 DECLARE @PeriodEnd DATE 
 --For refreshing, the offset for getting the period start and end should be -1 to get the latest refreshed month
-SET @PeriodStart = (SELECT DATEADD(MONTH,-2,MAX([ReportingPeriodStartDate])) FROM [mesh_IAPT].[IsLatest_SubmissionID])
-SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-2,MAX([ReportingPeriodEndDate]))) FROM [mesh_IAPT].[IsLatest_SubmissionID])
+SET @PeriodStart = (SELECT DATEADD(MONTH,-1,MAX([ReportingPeriodStartDate])) FROM [mesh_IAPT].[IsLatest_SubmissionID])
+SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-1,MAX([ReportingPeriodEndDate]))) FROM [mesh_IAPT].[IsLatest_SubmissionID])
 
 --The offset needs to be set for September 2020 (e.g. @PeriodStart -30 = -31 which is the offset of September 2020)
 DECLARE @Offset int
-SET @Offset=-31
+SET @Offset=-32
 
 SET DATEFIRST 1
 

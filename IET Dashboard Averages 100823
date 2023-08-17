@@ -4,7 +4,7 @@
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 --National, IET 1+
 SELECT 
-Month
+Quarter
 ,CAST('National' AS VARCHAR(50)) AS OrgType
 ,CAST('All Regions' AS VARCHAR(255)) AS Region
 ,CAST('England' AS VARCHAR(255)) AS OrgName
@@ -22,14 +22,14 @@ INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
-	Month
+	Quarter
 	,IntEnabledTherProg
 GO
 
 --National, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
-Month
+Quarter
 ,CAST('National' AS VARCHAR(50)) AS OrgType
 ,CAST('All Regions' AS VARCHAR(255)) AS Region
 ,CAST('England' AS VARCHAR(255)) AS OrgName
@@ -46,14 +46,14 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
-	Month
+	Quarter
 	,IntEnabledTherProg
 
 
 --National, IET 2+
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
-Month
+Quarter
 ,CAST('National' AS VARCHAR(50)) AS OrgType
 ,CAST('All Regions' AS VARCHAR(255)) AS Region
 ,CAST('England' AS VARCHAR(255)) AS OrgName
@@ -70,13 +70,13 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
-	Month
+	Quarter
 	,IntEnabledTherProg
 
 --Region, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
-Month
+Quarter
 ,'Region' AS OrgType
 ,RegionNameComm AS Region
 ,RegionNameComm AS OrgName
@@ -93,7 +93,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,RegionCodeComm
 	,IntEnabledTherProg
@@ -102,7 +102,7 @@ GROUP BY
 --Region, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
-Month
+Quarter
 ,'Region' AS OrgType
 ,RegionNameComm AS Region
 ,RegionNameComm  AS OrgName
@@ -119,7 +119,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,RegionCodeComm 
 	,IntEnabledTherProg
@@ -128,7 +128,7 @@ GROUP BY
 --Region, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
-Month
+Quarter
 ,'Region' AS OrgType
 ,RegionNameComm AS Region
 ,RegionNameComm  AS OrgName
@@ -145,7 +145,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,RegionCodeComm 
 	,IntEnabledTherProg
@@ -153,7 +153,7 @@ GROUP BY
 --ICB, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
-Month
+Quarter
 ,'ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[ICBName] AS OrgName
@@ -170,7 +170,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[ICBName]
 	,[ICBCode]
@@ -179,7 +179,7 @@ GROUP BY
 --ICB, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
-Month
+Quarter
 ,'ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[ICBName] AS OrgName
@@ -196,7 +196,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[ICBName]
 	,[ICBCode]
@@ -206,7 +206,7 @@ GROUP BY
 --ICB, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
-Month
+Quarter
 ,'ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[ICBName] AS OrgName
@@ -223,7 +223,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[ICBName]
 	,[ICBCode]
@@ -233,7 +233,7 @@ GROUP BY
 --Sub-ICB, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
-Month
+Quarter
 ,'Sub-ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[Sub-ICBName] AS OrgName
@@ -250,7 +250,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[Sub-ICBName]
 	,[Sub-ICBCode]
@@ -259,7 +259,7 @@ GROUP BY
 --Sub-ICB, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
-Month
+Quarter
 ,'Sub-ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[Sub-ICBName] AS OrgName
@@ -276,7 +276,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[Sub-ICBName]
 	,[Sub-ICBCode]
@@ -285,7 +285,7 @@ GROUP BY
 --Sub-ICB, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
-Month
+Quarter
 ,'Sub-ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[Sub-ICBName] AS OrgName
@@ -302,7 +302,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[Sub-ICBName]
 	,[Sub-ICBCode]
@@ -311,7 +311,7 @@ GROUP BY
 --Provider, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
-Month
+Quarter
 ,'Provider' AS OrgType
 ,RegionNameProv AS Region
 ,[ProviderName] AS OrgName
@@ -328,7 +328,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameProv
 	,[ProviderName]
 	,[ProviderCode]
@@ -337,7 +337,7 @@ GROUP BY
 --Provider, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
-Month
+Quarter
 ,'Provider' AS OrgType
 ,RegionNameProv AS Region
 ,[ProviderName] AS OrgName
@@ -354,7 +354,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameProv
 	,[ProviderName]
 	,[ProviderCode]
@@ -363,7 +363,7 @@ GROUP BY
 --Provider, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
-Month
+Quarter
 ,'Provider' AS OrgType
 ,RegionNameProv AS Region
 ,[ProviderName] AS OrgName
@@ -380,7 +380,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameProv
 	,[ProviderName]
 	,[ProviderCode]
@@ -415,6 +415,7 @@ FROM(
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 SELECT DISTINCT
 	b.Month
+	,b.Quarter
 	,b.PathwayID
 
 	--Number of Appointments
@@ -449,7 +450,7 @@ LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_IETContacts] i ON i.PathwayID = b.Pathway
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 --National, IET 1+
 SELECT 
-Month
+Quarter
 ,CAST('National' AS VARCHAR(50)) AS OrgType
 ,CAST('All Regions' AS VARCHAR(255)) AS Region
 ,CAST('England' AS VARCHAR(255)) AS OrgName
@@ -462,14 +463,14 @@ INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
-	Month
+	Quarter
 	,IntEnabledTherProg
 GO
 
 --National, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 SELECT 
-Month
+Quarter
 ,'National' AS OrgType
 ,'All Regions' AS Region
 ,'England' AS OrgName
@@ -481,14 +482,14 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
-	Month
+	Quarter
 	,IntEnabledTherProg
 
 
 --National, IET 2+
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 SELECT 
-Month
+Quarter
 ,'National' AS OrgType
 ,'All Regions' AS Region
 ,'England' AS OrgName
@@ -500,13 +501,13 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
-	Month
+	Quarter
 	,IntEnabledTherProg
 
 --Region, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Region' AS OrgType
 ,RegionNameComm AS Region
 ,RegionNameComm AS OrgName
@@ -518,7 +519,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,RegionCodeComm
 	,IntEnabledTherProg
@@ -527,7 +528,7 @@ GROUP BY
 --Region, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Region' AS OrgType
 ,RegionNameComm AS Region
 ,RegionNameComm  AS OrgName
@@ -539,7 +540,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,RegionCodeComm 
 	,IntEnabledTherProg
@@ -548,7 +549,7 @@ GROUP BY
 --Region, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Region' AS OrgType
 ,RegionNameComm AS Region
 ,RegionNameComm  AS OrgName
@@ -560,7 +561,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,RegionCodeComm 
 	,IntEnabledTherProg
@@ -568,7 +569,7 @@ GROUP BY
 --ICB, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 SELECT 
-Month
+Quarter
 ,'ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[ICBName] AS OrgName
@@ -580,7 +581,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[ICBName]
 	,[ICBCode]
@@ -589,7 +590,7 @@ GROUP BY
 --ICB, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 SELECT 
-Month
+Quarter
 ,'ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[ICBName] AS OrgName
@@ -601,7 +602,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[ICBName]
 	,[ICBCode]
@@ -611,7 +612,7 @@ GROUP BY
 --ICB, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 SELECT 
-Month
+Quarter
 ,'ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[ICBName] AS OrgName
@@ -623,7 +624,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[ICBName]
 	,[ICBCode]
@@ -633,7 +634,7 @@ GROUP BY
 --Sub-ICB, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Sub-ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[Sub-ICBName] AS OrgName
@@ -645,7 +646,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[Sub-ICBName]
 	,[Sub-ICBCode]
@@ -654,7 +655,7 @@ GROUP BY
 --Sub-ICB, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Sub-ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[Sub-ICBName] AS OrgName
@@ -666,7 +667,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[Sub-ICBName]
 	,[Sub-ICBCode]
@@ -675,7 +676,7 @@ GROUP BY
 --Sub-ICB, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Sub-ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[Sub-ICBName] AS OrgName
@@ -687,7 +688,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[Sub-ICBName]
 	,[Sub-ICBCode]
@@ -696,7 +697,7 @@ GROUP BY
 --Provider, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Provider' AS OrgType
 ,RegionNameProv AS Region
 ,[ProviderName] AS OrgName
@@ -708,7 +709,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameProv
 	,[ProviderName]
 	,[ProviderCode]
@@ -717,7 +718,7 @@ GROUP BY
 --Provider, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Provider' AS OrgType
 ,RegionNameProv AS Region
 ,[ProviderName] AS OrgName
@@ -729,7 +730,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameProv
 	,[ProviderName]
 	,[ProviderCode]
@@ -738,7 +739,7 @@ GROUP BY
 --Provider, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Provider' AS OrgType
 ,RegionNameProv AS Region
 ,[ProviderName] AS OrgName
@@ -750,7 +751,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameProv
 	,[ProviderName]
 	,[ProviderCode]
@@ -797,6 +798,7 @@ WHERE l.IsLatest = 1
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 SELECT DISTINCT
 	b.Month
+	,b.Quarter
 	,b.PathwayID
 
 	--Number of Appointments
@@ -832,7 +834,7 @@ LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_AllContacts] ca ON ca.PathwayID=b.Pathway
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 --National, IET 1+
 SELECT 
-Month
+Quarter
 ,CAST('National' AS VARCHAR(50)) AS OrgType
 ,CAST('All Regions' AS VARCHAR(255)) AS Region
 ,CAST('England' AS VARCHAR(255)) AS OrgName
@@ -845,14 +847,14 @@ INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
-	Month
+	Quarter
 	,IntEnabledTherProg
 GO
 
 --National, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
-Month
+Quarter
 ,'National' AS OrgType
 ,'All Regions' AS Region
 ,'England' AS OrgName
@@ -864,14 +866,14 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
-	Month
+	Quarter
 	,IntEnabledTherProg
 
 
 --National, IET 2+
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
-Month
+Quarter
 ,'National' AS OrgType
 ,'All Regions' AS Region
 ,'England' AS OrgName
@@ -883,13 +885,13 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
-	Month
+	Quarter
 	,IntEnabledTherProg
 
 --Region, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Region' AS OrgType
 ,RegionNameComm AS Region
 ,RegionNameComm AS OrgName
@@ -901,7 +903,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,RegionCodeComm
 	,IntEnabledTherProg
@@ -910,7 +912,7 @@ GROUP BY
 --Region, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Region' AS OrgType
 ,RegionNameComm AS Region
 ,RegionNameComm  AS OrgName
@@ -922,7 +924,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,RegionCodeComm 
 	,IntEnabledTherProg
@@ -931,7 +933,7 @@ GROUP BY
 --Region, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Region' AS OrgType
 ,RegionNameComm AS Region
 ,RegionNameComm  AS OrgName
@@ -943,7 +945,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,RegionCodeComm 
 	,IntEnabledTherProg
@@ -951,7 +953,7 @@ GROUP BY
 --ICB, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
-Month
+Quarter
 ,'ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[ICBName] AS OrgName
@@ -963,7 +965,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[ICBName]
 	,[ICBCode]
@@ -972,7 +974,7 @@ GROUP BY
 --ICB, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
-Month
+Quarter
 ,'ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[ICBName] AS OrgName
@@ -984,7 +986,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[ICBName]
 	,[ICBCode]
@@ -994,7 +996,7 @@ GROUP BY
 --ICB, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
-Month
+Quarter
 ,'ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[ICBName] AS OrgName
@@ -1006,7 +1008,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[ICBName]
 	,[ICBCode]
@@ -1016,7 +1018,7 @@ GROUP BY
 --Sub-ICB, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Sub-ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[Sub-ICBName] AS OrgName
@@ -1028,7 +1030,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[Sub-ICBName]
 	,[Sub-ICBCode]
@@ -1037,7 +1039,7 @@ GROUP BY
 --Sub-ICB, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Sub-ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[Sub-ICBName] AS OrgName
@@ -1049,7 +1051,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[Sub-ICBName]
 	,[Sub-ICBCode]
@@ -1058,7 +1060,7 @@ GROUP BY
 --Sub-ICB, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Sub-ICB' AS OrgType
 ,RegionNameComm AS Region
 ,[Sub-ICBName] AS OrgName
@@ -1070,7 +1072,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameComm
 	,[Sub-ICBName]
 	,[Sub-ICBCode]
@@ -1079,7 +1081,7 @@ GROUP BY
 --Provider, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Provider' AS OrgType
 ,RegionNameProv AS Region
 ,[ProviderName] AS OrgName
@@ -1091,7 +1093,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameProv
 	,[ProviderName]
 	,[ProviderCode]
@@ -1100,7 +1102,7 @@ GROUP BY
 --Provider, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Provider' AS OrgType
 ,RegionNameProv AS Region
 ,[ProviderName] AS OrgName
@@ -1112,7 +1114,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameProv
 	,[ProviderName]
 	,[ProviderCode]
@@ -1121,7 +1123,7 @@ GROUP BY
 --Provider, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
-Month
+Quarter
 ,'Provider' AS OrgType
 ,RegionNameProv AS Region
 ,[ProviderName] AS OrgName
@@ -1133,7 +1135,7 @@ Month
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
-	Month
+	Quarter
 	,RegionNameProv
 	,[ProviderName]
 	,[ProviderCode]
