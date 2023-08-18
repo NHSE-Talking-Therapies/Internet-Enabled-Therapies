@@ -10,7 +10,7 @@ Quarter
 ,CAST('England' AS VARCHAR(255)) AS OrgName
 ,CAST('ENG' AS VARCHAR(50)) AS OrgCode
 ,CAST('1+ IET' AS VARCHAR(50)) AS AppointmentType
-,IntEnabledTherProg
+--,IntEnabledTherProg
 ,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
 ,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
 ,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
@@ -23,7 +23,7 @@ FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
 	Quarter
-	,IntEnabledTherProg
+	--,IntEnabledTherProg
 GO
 
 --National, No IET
@@ -35,7 +35,7 @@ Quarter
 ,CAST('England' AS VARCHAR(255)) AS OrgName
 ,CAST('ENG' AS VARCHAR(50)) AS OrgCode
 ,'No IET' AS AppointmentType
-,IntEnabledTherProg
+--,IntEnabledTherProg
 ,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
 ,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
 ,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
@@ -47,7 +47,7 @@ FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
 	Quarter
-	,IntEnabledTherProg
+	--,IntEnabledTherProg
 
 
 --National, IET 2+
@@ -59,7 +59,7 @@ Quarter
 ,CAST('England' AS VARCHAR(255)) AS OrgName
 ,CAST('ENG' AS VARCHAR(50)) AS OrgCode
 ,'2+ IET' AS AppointmentType
-,IntEnabledTherProg
+--,IntEnabledTherProg
 ,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
 ,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
 ,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
@@ -71,7 +71,7 @@ FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
 	Quarter
-	,IntEnabledTherProg
+	--,IntEnabledTherProg
 
 --Region, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
@@ -82,7 +82,7 @@ Quarter
 ,RegionNameComm AS OrgName
 ,RegionCodeComm AS OrgCode
 ,'1+ IET' AS AppointmentType
-,IntEnabledTherProg
+--,IntEnabledTherProg
 ,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
 ,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
 ,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
@@ -96,7 +96,7 @@ GROUP BY
 	Quarter
 	,RegionNameComm
 	,RegionCodeComm
-	,IntEnabledTherProg
+	--,IntEnabledTherProg
 
 
 --Region, No IET
@@ -108,7 +108,7 @@ Quarter
 ,RegionNameComm  AS OrgName
 ,RegionCodeComm  AS OrgCode
 ,'No IET' AS AppointmentType
-,IntEnabledTherProg
+--,IntEnabledTherProg
 ,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
 ,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
 ,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
@@ -122,7 +122,7 @@ GROUP BY
 	Quarter
 	,RegionNameComm
 	,RegionCodeComm 
-	,IntEnabledTherProg
+	--,IntEnabledTherProg
 
 
 --Region, 2+ IET
@@ -134,7 +134,7 @@ Quarter
 ,RegionNameComm  AS OrgName
 ,RegionCodeComm  AS OrgCode
 ,'2+ IET' AS AppointmentType
-,IntEnabledTherProg
+--,IntEnabledTherProg
 ,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
 ,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
 ,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
@@ -148,7 +148,7 @@ GROUP BY
 	Quarter
 	,RegionNameComm
 	,RegionCodeComm 
-	,IntEnabledTherProg
+	--,IntEnabledTherProg
 
 --ICB, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
@@ -159,7 +159,7 @@ Quarter
 ,[ICBName] AS OrgName
 ,[ICBCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
-,IntEnabledTherProg
+--,IntEnabledTherProg
 ,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
 ,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
 ,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
@@ -174,7 +174,7 @@ GROUP BY
 	,RegionNameComm
 	,[ICBName]
 	,[ICBCode]
-	,IntEnabledTherProg
+	--,IntEnabledTherProg
 
 --ICB, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
@@ -185,7 +185,7 @@ Quarter
 ,[ICBName] AS OrgName
 ,[ICBCode] AS OrgCode
 ,'No IET' AS AppointmentType
-,IntEnabledTherProg
+--,IntEnabledTherProg
 ,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
 ,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
 ,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
@@ -200,7 +200,7 @@ GROUP BY
 	,RegionNameComm
 	,[ICBName]
 	,[ICBCode]
-	,IntEnabledTherProg
+	--,IntEnabledTherProg
 
 
 --ICB, 2+ IET
@@ -212,7 +212,7 @@ Quarter
 ,[ICBName] AS OrgName
 ,[ICBCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
-,IntEnabledTherProg
+--,IntEnabledTherProg
 ,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
 ,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
 ,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
@@ -227,7 +227,7 @@ GROUP BY
 	,RegionNameComm
 	,[ICBName]
 	,[ICBCode]
-	,IntEnabledTherProg
+	--,IntEnabledTherProg
 
 
 --Sub-ICB, 1+ IET
@@ -239,7 +239,7 @@ Quarter
 ,[Sub-ICBName] AS OrgName
 ,[Sub-ICBCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
-,IntEnabledTherProg
+--,IntEnabledTherProg
 ,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
 ,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
 ,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
@@ -254,7 +254,7 @@ GROUP BY
 	,RegionNameComm
 	,[Sub-ICBName]
 	,[Sub-ICBCode]
-	,IntEnabledTherProg
+	--,IntEnabledTherProg
 
 --Sub-ICB, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
@@ -265,7 +265,7 @@ Quarter
 ,[Sub-ICBName] AS OrgName
 ,[Sub-ICBCode] AS OrgCode
 ,'No IET' AS AppointmentType
-,IntEnabledTherProg
+--,IntEnabledTherProg
 ,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
 ,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
 ,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
@@ -280,7 +280,7 @@ GROUP BY
 	,RegionNameComm
 	,[Sub-ICBName]
 	,[Sub-ICBCode]
-	,IntEnabledTherProg
+	--,IntEnabledTherProg
 
 --Sub-ICB, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
@@ -291,7 +291,7 @@ Quarter
 ,[Sub-ICBName] AS OrgName
 ,[Sub-ICBCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
-,IntEnabledTherProg
+--,IntEnabledTherProg
 ,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
 ,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
 ,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
@@ -306,7 +306,7 @@ GROUP BY
 	,RegionNameComm
 	,[Sub-ICBName]
 	,[Sub-ICBCode]
-	,IntEnabledTherProg
+	--,IntEnabledTherProg
 
 --Provider, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
@@ -317,7 +317,7 @@ Quarter
 ,[ProviderName] AS OrgName
 ,[ProviderCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
-,IntEnabledTherProg
+--,IntEnabledTherProg
 ,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
 ,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
 ,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
@@ -332,7 +332,7 @@ GROUP BY
 	,RegionNameProv
 	,[ProviderName]
 	,[ProviderCode]
-	,IntEnabledTherProg
+	--,IntEnabledTherProg
 
 --Provider, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
@@ -343,7 +343,7 @@ Quarter
 ,[ProviderName] AS OrgName
 ,[ProviderCode] AS OrgCode
 ,'No IET' AS AppointmentType
-,IntEnabledTherProg
+--,IntEnabledTherProg
 ,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
 ,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
 ,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
@@ -358,7 +358,7 @@ GROUP BY
 	,RegionNameProv
 	,[ProviderName]
 	,[ProviderCode]
-	,IntEnabledTherProg
+	--,IntEnabledTherProg
 
 --Provider, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
@@ -369,7 +369,7 @@ Quarter
 ,[ProviderName] AS OrgName
 ,[ProviderCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
-,IntEnabledTherProg
+--,IntEnabledTherProg
 ,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
 ,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
 ,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
@@ -384,7 +384,7 @@ GROUP BY
 	,RegionNameProv
 	,[ProviderName]
 	,[ProviderCode]
-	,IntEnabledTherProg
+	--,IntEnabledTherProg
 
 
 ---------------------------------------------------------------

@@ -194,6 +194,75 @@ SELECT DISTINCT
 		WHEN r.PHQ9_FirstScore BETWEEN 15 AND 19 THEN 'Moderate Severe'
 		WHEN r.PHQ9_FirstScore BETWEEN 20 AND 27 THEN 'Severe' END AS 'PHQ9 Cluster'
 
+	,CASE WHEN r.InternetEnabledTherapy_Count=0 
+		AND (
+			r.AppliedRelaxation_Count>0
+			OR r.BriefPsychodynamicPsychotherapy_Count>0
+			OR r.CognitiveBehaviourTherapy_Count>0
+			OR r.CollaborativeCare_Count>0
+			OR r.CounsellingDepression_Count>0
+			OR r.CouplesTherapyDepression_Count>0
+			--empsupp not included
+			OR r.EyeMovementDesensitisationReprocessing_Count>0
+			OR r.GuidedSelfHelp_Book_Count>0
+			OR r.GuidedSelfHelp_Computer_Count>0
+			OR r.InterpersonalPsychotherapy_Count>0
+			OR r.Mindfulness_Count>0
+			OR r.NonGuidedSelfHelp_Book_Count>0 
+			OR r.NonGuidedSelfHelp_Computer_Count>0
+			OR r.OtherHighIntensity_Count>0
+			OR r.OtherLowIntensity_Count>0
+			OR r.PsychoeducationalPeerSupport_Count>0
+			OR r.StructuredPhysicalActivity_Count>0
+			OR r.CommunitySignPosting_Count>0
+			)
+		THEN 'No IET'
+		WHEN r.InternetEnabledTherapy_Count>0 
+			AND r.AppliedRelaxation_Count=0
+			AND r.BriefPsychodynamicPsychotherapy_Count=0
+			AND r.CognitiveBehaviourTherapy_Count=0
+			AND r.CollaborativeCare_Count=0
+			AND r.CounsellingDepression_Count=0
+			AND r.CouplesTherapyDepression_Count=0
+			--empsupp not included
+			AND r.EyeMovementDesensitisationReprocessing_Count=0
+			AND r.GuidedSelfHelp_Book_Count=0
+			AND r.GuidedSelfHelp_Computer_Count=0
+			AND r.InterpersonalPsychotherapy_Count=0
+			AND r.Mindfulness_Count=0
+			AND r.NonGuidedSelfHelp_Book_Count=0
+			AND r.NonGuidedSelfHelp_Computer_Count=0
+			AND r.OtherHighIntensity_Count=0
+			AND r.OtherLowIntensity_Count=0
+			AND r.PsychoeducationalPeerSupport_Count=0			
+			AND r.StructuredPhysicalActivity_Count=0
+			AND r.CommunitySignPosting_Count=0
+		THEN 'Only IET'
+		WHEN r.InternetEnabledTherapy_Count>0 
+			AND (
+			r.AppliedRelaxation_Count>0
+			OR r.BriefPsychodynamicPsychotherapy_Count>0
+			OR r.CognitiveBehaviourTherapy_Count>0
+			OR r.CollaborativeCare_Count>0
+			OR r.CounsellingDepression_Count>0
+			OR r.CouplesTherapyDepression_Count>0
+			--empsupp not included
+			OR r.EyeMovementDesensitisationReprocessing_Count>0
+			OR r.GuidedSelfHelp_Book_Count>0
+			OR r.GuidedSelfHelp_Computer_Count>0
+			OR r.InterpersonalPsychotherapy_Count>0
+			OR r.Mindfulness_Count>0
+			OR r.NonGuidedSelfHelp_Book_Count>0 
+			OR r.NonGuidedSelfHelp_Computer_Count>0
+			OR r.OtherHighIntensity_Count>0
+			OR r.OtherLowIntensity_Count>0
+			OR r.PsychoeducationalPeerSupport_Count>0
+			OR r.StructuredPhysicalActivity_Count>0
+			OR r.CommunitySignPosting_Count>0
+			)
+		THEN 'Mixed IET and No IET'
+		END AS UniqueMixedPathway
+
     --Geography
     ,ch.Organisation_Code as 'Sub-ICBCode'
 	,ch.Organisation_Name as 'Sub-ICBName'
@@ -247,6 +316,7 @@ Month
 ,ProblemDescriptor
 ,[GAD7 Cluster]
 ,[PHQ9 Cluster]
+,UniqueMixedPathway
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -264,6 +334,7 @@ GROUP BY
 	,ProblemDescriptor
 	,[GAD7 Cluster]
 	,[PHQ9 Cluster]
+	,UniqueMixedPathway
 GO
 --National, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -282,6 +353,7 @@ Month
 ,ProblemDescriptor
 ,[GAD7 Cluster]
 ,[PHQ9 Cluster]
+,UniqueMixedPathway
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -298,6 +370,7 @@ GROUP BY
 	,ProblemDescriptor
 	,[GAD7 Cluster]
 	,[PHQ9 Cluster]
+	,UniqueMixedPathway
 
 --National, IET 2+
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -316,6 +389,7 @@ Month
 ,ProblemDescriptor
 ,[GAD7 Cluster]
 ,[PHQ9 Cluster]
+,UniqueMixedPathway
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -332,6 +406,7 @@ GROUP BY
 	,ProblemDescriptor
 	,[GAD7 Cluster]
 	,[PHQ9 Cluster]
+	,UniqueMixedPathway
 
 --Region, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -350,6 +425,7 @@ Month
 ,ProblemDescriptor
 ,[GAD7 Cluster]
 ,[PHQ9 Cluster]
+,UniqueMixedPathway
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -368,6 +444,7 @@ GROUP BY
 	,ProblemDescriptor
 	,[GAD7 Cluster]
 	,[PHQ9 Cluster]
+	,UniqueMixedPathway
 
 --Region, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -386,6 +463,7 @@ Month
 ,ProblemDescriptor
 ,[GAD7 Cluster]
 ,[PHQ9 Cluster]
+,UniqueMixedPathway
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -404,6 +482,7 @@ GROUP BY
 	,ProblemDescriptor
 	,[GAD7 Cluster]
 	,[PHQ9 Cluster]
+	,UniqueMixedPathway
 
 --Region, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -422,6 +501,7 @@ Month
 ,ProblemDescriptor
 ,[GAD7 Cluster]
 ,[PHQ9 Cluster]
+,UniqueMixedPathway
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -440,6 +520,7 @@ GROUP BY
 	,ProblemDescriptor
 	,[GAD7 Cluster]
 	,[PHQ9 Cluster]
+	,UniqueMixedPathway
 
 
 --ICB, 1+ IET
@@ -459,6 +540,7 @@ Month
 ,ProblemDescriptor
 ,[GAD7 Cluster]
 ,[PHQ9 Cluster]
+,UniqueMixedPathway
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -478,6 +560,7 @@ GROUP BY
 	,ProblemDescriptor
 	,[GAD7 Cluster]
 	,[PHQ9 Cluster]
+	,UniqueMixedPathway
 
 --ICB, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -496,6 +579,7 @@ Month
 ,ProblemDescriptor
 ,[GAD7 Cluster]
 ,[PHQ9 Cluster]
+,UniqueMixedPathway
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -515,6 +599,7 @@ GROUP BY
 	,ProblemDescriptor
 	,[GAD7 Cluster]
 	,[PHQ9 Cluster]
+	,UniqueMixedPathway
 
 
 --ICB, 2+ IET
@@ -534,6 +619,7 @@ Month
 ,ProblemDescriptor
 ,[GAD7 Cluster]
 ,[PHQ9 Cluster]
+,UniqueMixedPathway
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -553,6 +639,7 @@ GROUP BY
 	,ProblemDescriptor
 	,[GAD7 Cluster]
 	,[PHQ9 Cluster]
+	,UniqueMixedPathway
 
 --Sub-ICB, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -571,6 +658,7 @@ Month
 ,ProblemDescriptor
 ,[GAD7 Cluster]
 ,[PHQ9 Cluster]
+,UniqueMixedPathway
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -590,6 +678,7 @@ GROUP BY
 	,ProblemDescriptor
 	,[GAD7 Cluster]
 	,[PHQ9 Cluster]
+	,UniqueMixedPathway
 
 --Sub-ICB, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -608,6 +697,7 @@ Month
 ,ProblemDescriptor
 ,[GAD7 Cluster]
 ,[PHQ9 Cluster]
+,UniqueMixedPathway
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -627,6 +717,7 @@ GROUP BY
 	,ProblemDescriptor
 	,[GAD7 Cluster]
 	,[PHQ9 Cluster]
+	,UniqueMixedPathway
 
 --Sub-ICB, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -645,6 +736,7 @@ Month
 ,ProblemDescriptor
 ,[GAD7 Cluster]
 ,[PHQ9 Cluster]
+,UniqueMixedPathway
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -664,6 +756,7 @@ GROUP BY
 	,ProblemDescriptor
 	,[GAD7 Cluster]
 	,[PHQ9 Cluster]
+	,UniqueMixedPathway
 
 --Provider, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -682,6 +775,7 @@ Month
 ,ProblemDescriptor
 ,[GAD7 Cluster]
 ,[PHQ9 Cluster]
+,UniqueMixedPathway
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -701,6 +795,7 @@ GROUP BY
 	,ProblemDescriptor
 	,[GAD7 Cluster]
 	,[PHQ9 Cluster]
+	,UniqueMixedPathway
 
 
 --Provider, No IET
@@ -720,6 +815,7 @@ Month
 ,ProblemDescriptor
 ,[GAD7 Cluster]
 ,[PHQ9 Cluster]
+,UniqueMixedPathway
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -739,6 +835,7 @@ GROUP BY
 	,ProblemDescriptor
 	,[GAD7 Cluster]
 	,[PHQ9 Cluster]
+	,UniqueMixedPathway
 
 --Provider, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_Main]
@@ -757,6 +854,7 @@ Month
 ,ProblemDescriptor
 ,[GAD7 Cluster]
 ,[PHQ9 Cluster]
+,UniqueMixedPathway
 ,SUM(CompTreatFlagRecFlag) AS CompTreatFlagRecFlag
 ,SUM(CompTreatFlagNotCasenessFlag) AS CompTreatFlagNotCasenessFlag
 ,SUM(CompTreatFlagRelImpFlag) AS CompTreatFlagRelImpFlag
@@ -776,6 +874,7 @@ GROUP BY
 	,ProblemDescriptor
 	,[GAD7 Cluster]
 	,[PHQ9 Cluster]
+	,UniqueMixedPathway
 
 -------------------------------------------------------------------------------
 --For Patient Experience Questionnaire (PEQ)
