@@ -194,76 +194,18 @@ SELECT DISTINCT
 		WHEN r.PHQ9_FirstScore BETWEEN 15 AND 19 THEN 'Moderate Severe'
 		WHEN r.PHQ9_FirstScore BETWEEN 20 AND 27 THEN 'Severe' END AS 'PHQ9 Cluster'
 
-	,CASE WHEN r.InternetEnabledTherapy_Count=0 
-		AND (
-			r.AppliedRelaxation_Count>0
-			OR r.BriefPsychodynamicPsychotherapy_Count>0
-			OR r.CognitiveBehaviourTherapy_Count>0
-			OR r.CollaborativeCare_Count>0
-			OR r.CounsellingDepression_Count>0
-			OR r.CouplesTherapyDepression_Count>0
-			--empsupp not included
-			OR r.EyeMovementDesensitisationReprocessing_Count>0
-			OR r.GuidedSelfHelp_Book_Count>0
-			OR r.GuidedSelfHelp_Computer_Count>0
-			OR r.InterpersonalPsychotherapy_Count>0
-			OR r.Mindfulness_Count>0
-			OR r.NonGuidedSelfHelp_Book_Count>0 
-			OR r.NonGuidedSelfHelp_Computer_Count>0
-			OR r.OtherHighIntensity_Count>0
-			OR r.OtherLowIntensity_Count>0
-			OR r.PsychoeducationalPeerSupport_Count>0
-			OR r.StructuredPhysicalActivity_Count>0
-			OR r.CommunitySignPosting_Count>0
-			)
+	,CASE WHEN r.InternetEnabledTherapy_Count=0 AND r.TreatmentCareContact_Count>0
 		THEN 'No IET'
-		WHEN r.InternetEnabledTherapy_Count>0 
-			AND r.AppliedRelaxation_Count=0
-			AND r.BriefPsychodynamicPsychotherapy_Count=0
-			AND r.CognitiveBehaviourTherapy_Count=0
-			AND r.CollaborativeCare_Count=0
-			AND r.CounsellingDepression_Count=0
-			AND r.CouplesTherapyDepression_Count=0
-			--empsupp not included
-			AND r.EyeMovementDesensitisationReprocessing_Count=0
-			AND r.GuidedSelfHelp_Book_Count=0
-			AND r.GuidedSelfHelp_Computer_Count=0
-			AND r.InterpersonalPsychotherapy_Count=0
-			AND r.Mindfulness_Count=0
-			AND r.NonGuidedSelfHelp_Book_Count=0
-			AND r.NonGuidedSelfHelp_Computer_Count=0
-			AND r.OtherHighIntensity_Count=0
-			AND r.OtherLowIntensity_Count=0
-			AND r.PsychoeducationalPeerSupport_Count=0			
-			AND r.StructuredPhysicalActivity_Count=0
-			AND r.CommunitySignPosting_Count=0
+		WHEN r.InternetEnabledTherapy_Count>0 AND r.TreatmentCareContact_Count=r.InternetEnabledTherapy_Count
 		THEN 'Only IET'
-		WHEN r.InternetEnabledTherapy_Count>0 
-			AND (
-			r.AppliedRelaxation_Count>0
-			OR r.BriefPsychodynamicPsychotherapy_Count>0
-			OR r.CognitiveBehaviourTherapy_Count>0
-			OR r.CollaborativeCare_Count>0
-			OR r.CounsellingDepression_Count>0
-			OR r.CouplesTherapyDepression_Count>0
-			--empsupp not included
-			OR r.EyeMovementDesensitisationReprocessing_Count>0
-			OR r.GuidedSelfHelp_Book_Count>0
-			OR r.GuidedSelfHelp_Computer_Count>0
-			OR r.InterpersonalPsychotherapy_Count>0
-			OR r.Mindfulness_Count>0
-			OR r.NonGuidedSelfHelp_Book_Count>0 
-			OR r.NonGuidedSelfHelp_Computer_Count>0
-			OR r.OtherHighIntensity_Count>0
-			OR r.OtherLowIntensity_Count>0
-			OR r.PsychoeducationalPeerSupport_Count>0
-			OR r.StructuredPhysicalActivity_Count>0
-			OR r.CommunitySignPosting_Count>0
-			)
+		WHEN r.InternetEnabledTherapy_Count>0 AND r.TreatmentCareContact_Count>r.InternetEnabledTherapy_Count
 		THEN 'Mixed IET and No IET'
-		END AS UniqueMixedPathway
+	END AS UniqueMixedPathway
 
     --Geography
+	,r.OrgIDComm AS RefTableCode
+	,cc.Org_Code AS ComChangesCode
+	,ch.ODS_Organisation_Type
     ,ch.Organisation_Code as 'Sub-ICBCode'
 	,ch.Organisation_Name as 'Sub-ICBName'
 	,ch.STP_Code as 'ICBCode'
@@ -279,20 +221,28 @@ FROM [MESH_IAPT].[IDS101referral] r
 
 INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON r.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND r.[AuditId] = l.[AuditId]
 --Three tables for getting the up-to-date Sub-ICB/ICB/Region/Provider names/codes:
-LEFT JOIN [MHDInternal].[REFERENCE_CCG_2020_Lookup] c ON r.OrgIDComm = c.IC_CCG					
-LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON c.CCG21 = ch.Organisation_Code AND ch.Effective_To IS NULL
+--LEFT JOIN [MHDInternal].[REFERENCE_CCG_2020_Lookup] c ON r.OrgIDComm = c.IC_CCG					
+--LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON c.CCG21 = ch.Organisation_Code AND ch.Effective_To IS NULL
+
+LEFT JOIN [Internal_Reference].[ComCodeChanges] cc ON r.OrgIDComm = cc.Org_Code COLLATE database_default
+LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON COALESCE(cc.New_Code, r.OrgIDComm) = ch.Organisation_Code COLLATE database_default
+--This filters so that only current Sub-ICBs and not NonSTPs are used
+AND ch.ODS_Organisation_Type='CLINICAL COMMISSIONING GROUP' AND ch.Effective_To IS NULL AND ch.STP_Name<>'NonSTP (England Region)'
+
+--[Internal_Reference].[Provider_Successor] needs adding once in the mart
 LEFT JOIN [Reporting].[Ref_ODS_Provider_Hierarchies_ICB] ph ON r.OrgID_Provider = ph.Organisation_Code AND ph.Effective_To IS NULL
 
 LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration] i ON i.PathwayID = r.PathwayID
 LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_NoIETDuration] ca ON ca.PathwayID=r.PathwayID
 
-WHERE r.UsePathway_Flag = 'True' 
+WHERE 
+r.UsePathway_Flag = 'True' 
 	AND l.IsLatest = 1	--To get the latest data
 	AND r.CompletedTreatment_Flag = 'True'	--Data is filtered to only look at those who have completed a course of treatment
 	AND r.ServDischDate BETWEEN l.ReportingPeriodStartDate AND l.ReportingPeriodEndDate	
-	AND l.[ReportingPeriodStartDate] BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart	--for refresh, the offset should be 0 as only want the data for the latest month
-
-------------------------------------------------------------------------------------	
+	AND r.ReferralRequestReceivedDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart	--for refresh, the offset should be 0 as only want the data for the latest month
+	
+	------------------------------------------------------------------------------------	
 ----------------------------------------Aggregated Main Table------------------------
 --This table aggregates [MHDInternal].[TEMP_TTAD_IET_Base] table to get the number of PathwayIDs with the recovery flag,
 -- not caseness flag, reliable improvement flag, completed treatment flag, and both the recovery and reliable improvement flag.
@@ -955,8 +905,11 @@ INTO [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
 FROM [MESH_IAPT].[IDS101referral] r
 INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON r.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND r.[AuditId] = l.[AuditId]
 --Three tables for getting the up-to-date Sub-ICB/ICB/Region/Provider names/codes:
-LEFT JOIN [MHDInternal].[REFERENCE_CCG_2020_Lookup] c ON r.OrgIDComm = c.IC_CCG					
-LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON c.CCG21 = ch.Organisation_Code AND ch.Effective_To IS NULL
+--LEFT JOIN [MHDInternal].[REFERENCE_CCG_2020_Lookup] c ON r.OrgIDComm = c.IC_CCG					
+--LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON c.CCG21 = ch.Organisation_Code AND ch.Effective_To IS NULL
+LEFT JOIN [Internal_Reference].[ComCodeChanges] cc ON r.OrgIDComm = cc.Org_Code COLLATE database_default
+LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON COALESCE(cc.New_Code, r.OrgIDComm) = ch.Organisation_Code COLLATE database_default
+
 LEFT JOIN [Reporting].[Ref_ODS_Provider_Hierarchies_ICB] ph ON r.OrgID_Provider = ph.Organisation_Code AND ph.Effective_To IS NULL
 
 LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration] i ON i.PathwayID = r.PathwayID
@@ -970,7 +923,7 @@ WHERE l.IsLatest = 1	--To get the latest data
 	AND UsePathway_Flag='True'
 	AND r.CompletedTreatment_Flag = 'True'	--Data is filtered to only look at those who have completed a course of treatment
 	AND r.ServDischDate BETWEEN l.ReportingPeriodStartDate AND l.ReportingPeriodEndDate	
-	AND l.[ReportingPeriodStartDate] BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart	--for refresh, the offset should be 0 as only want the data for the latest month
+	AND r.ReferralRequestReceivedDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart	--for refresh, the offset should be 0 as only want the data for the latest month
 
 
 
