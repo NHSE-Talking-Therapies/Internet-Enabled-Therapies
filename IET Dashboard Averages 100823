@@ -18,7 +18,6 @@ FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
 	Quarter
-	
 GO
 
 --National, No IET
@@ -39,7 +38,6 @@ WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
 	Quarter
 
-
 --National, IET 2+
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
@@ -58,7 +56,6 @@ WHERE InternetEnabledTherapy_Count>=2
 GROUP BY 
 	Quarter
 	
-
 --Region, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
@@ -78,7 +75,6 @@ GROUP BY
 	Quarter
 	,RegionNameComm
 	,RegionCodeComm
-
 
 --Region, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
@@ -162,7 +158,6 @@ GROUP BY
 	,[ICBName]
 	,[ICBCode]
 
-
 --ICB, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 SELECT 
@@ -183,7 +178,6 @@ GROUP BY
 	,RegionNameComm
 	,[ICBName]
 	,[ICBCode]
-
 
 --Sub-ICB, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
@@ -311,7 +305,7 @@ GROUP BY
 	,[ProviderName]
 	,[ProviderCode]
 
----------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------
 -- Avg Appointments per course of treatment, Avg Therapist Time per course of treatment by Therapy Type
 
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AvgApptsAndTimePerTreat]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AvgApptsAndTimePerTreat]
@@ -356,7 +350,6 @@ GROUP BY
 	Quarter
 	,IntEnabledTherProg
 
-
 --National, IET 2+
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgApptsAndTimePerTreat]
 SELECT 
@@ -399,7 +392,6 @@ GROUP BY
 	,RegionCodeComm
 	,IntEnabledTherProg
 
-
 --Region, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgApptsAndTimePerTreat]
 SELECT 
@@ -421,7 +413,6 @@ GROUP BY
 	,RegionNameComm
 	,RegionCodeComm 
 	,IntEnabledTherProg
-
 
 --Region, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgApptsAndTimePerTreat]
@@ -491,7 +482,6 @@ GROUP BY
 	,[ICBCode]
 	,IntEnabledTherProg
 
-
 --ICB, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgApptsAndTimePerTreat]
 SELECT 
@@ -514,7 +504,6 @@ GROUP BY
 	,[ICBName]
 	,[ICBCode]
 	,IntEnabledTherProg
-
 
 --Sub-ICB, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgApptsAndTimePerTreat]
@@ -658,7 +647,6 @@ GROUP BY
 --Average therapist time per contact for IETs and for any contact
 
 ----Average IET Contacts
-
 --For IET average therapist time per contact
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_IETContacts]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_IETContacts]
 SELECT
@@ -713,7 +701,6 @@ INTO [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 FROM [MHDInternal].[TEMP_TTAD_IET_Base] b
 LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_IETContacts] i ON i.PathwayID = b.PathwayID 
 
-
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 --National, IET 1+
 SELECT 
@@ -751,7 +738,6 @@ WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
 GROUP BY 
 	Quarter
 	,IntEnabledTherProg
-
 
 --National, IET 2+
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
@@ -791,7 +777,6 @@ GROUP BY
 	,RegionCodeComm
 	,IntEnabledTherProg
 
-
 --Region, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 SELECT 
@@ -811,7 +796,6 @@ GROUP BY
 	,RegionNameComm
 	,RegionCodeComm 
 	,IntEnabledTherProg
-
 
 --Region, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
@@ -875,7 +859,6 @@ GROUP BY
 	,[ICBCode]
 	,IntEnabledTherProg
 
-
 --ICB, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 SELECT 
@@ -896,7 +879,6 @@ GROUP BY
 	,[ICBName]
 	,[ICBCode]
 	,IntEnabledTherProg
-
 
 --Sub-ICB, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
@@ -1026,23 +1008,7 @@ GROUP BY
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 ---------------------------------------------------------
-
-
-
 --For all contacts average therapist time per contact
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_AllContacts]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AllContacts]
 SELECT
@@ -1136,7 +1102,6 @@ GROUP BY
 	Quarter
 	,IntEnabledTherProg
 
-
 --National, IET 2+
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
@@ -1175,7 +1140,6 @@ GROUP BY
 	,RegionCodeComm
 	,IntEnabledTherProg
 
-
 --Region, No IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
@@ -1195,7 +1159,6 @@ GROUP BY
 	,RegionNameComm
 	,RegionCodeComm 
 	,IntEnabledTherProg
-
 
 --Region, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
@@ -1259,7 +1222,6 @@ GROUP BY
 	,[ICBCode]
 	,IntEnabledTherProg
 
-
 --ICB, 2+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 SELECT 
@@ -1280,7 +1242,6 @@ GROUP BY
 	,[ICBName]
 	,[ICBCode]
 	,IntEnabledTherProg
-
 
 --Sub-ICB, 1+ IET
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]

@@ -828,6 +828,32 @@ GROUP BY
 
 -------------------------------------------------------------------------------
 --For Patient Experience Questionnaire (PEQ)
+
+--Ranking PEQs
+IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_PEQRank]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_PEQRank]
+SELECT DISTINCT 
+*
+,ROW_NUMBER() OVER(PARTITION BY PathwayID,CodedAssToolType ORDER BY Effective_From desc) as LatestAnswer
+
+INTO [MHDInternal].[TEMP_TTAD_IET_PEQRank]
+FROM(
+SELECT DISTINCT 
+csa.PathwayID
+,csa.CodedAssToolType
+,s2.Term
+,csa.PersScore
+,csa.EFFECTIVE_FROM
+ FROM [mesh_IAPT].[IDS607codedscoreassessmentact] csa 
+LEFT JOIN [UKHD_SNOMED].[Descriptions_SCD] s2 ON CodedAssToolType = CAST(s2.[Concept_ID] AS VARCHAR) 
+	AND s2.Type_ID = 900000000000003001 AND s2.Is_Latest = 1 AND s2.Active = 1
+
+WHERE csa.[CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108'
+	,'747861000000100','747871000000107','747881000000109','904691000000103','747891000000106')
+)_
+
+------------------------------------
+--PEQ Base
+
 DECLARE @PeriodStart DATE
 DECLARE @PeriodEnd DATE 
 --For refreshing, the offset for getting the period start and end should be -1 to get the latest refreshed month
@@ -854,17 +880,17 @@ CAST(DATENAME(m, l.ReportingPeriodStartDate) + ' ' + CAST(DATEPART(yyyy, l.Repor
 		ELSE i.IntEnabledTherProg
 		END IntEnabledTherProg
 ,r.InternetEnabledTherapy_Count
-,CASE WHEN s2.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 1 score (observable entity)' THEN 'Assessment Question 1'
-	WHEN s2.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 2 score (observable entity)' THEN 'Assessment Question 2'
-	WHEN s2.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 3 score (observable entity)' THEN 'Assessment Question 3'
-	WHEN s2.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 4 score (observable entity)' THEN 'Assessment Question 4'
-	WHEN s2.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire satisfaction question 1 score (observable entity)' THEN 'Satisfaction Assessment Question 1'
-	WHEN s2.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 1 score (observable entity)' THEN 'Treatment Question 1'
-	WHEN s2.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 2 score (observable entity)' THEN 'Treatment Question 2'
-	WHEN s2.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 3 score (observable entity)' THEN 'Treatment Question 3'
-	WHEN s2.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 4 score (observable entity)' THEN 'Treatment Question 4'
-	WHEN s2.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 5 score (observable entity)' THEN 'Treatment Question 5'
-	WHEN s2.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 6 score (observable entity)' THEN 'Treatment Question 6'
+,CASE WHEN p.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 1 score (observable entity)' THEN 'Assessment Question 1'
+	WHEN p.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 2 score (observable entity)' THEN 'Assessment Question 2'
+	WHEN p.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 3 score (observable entity)' THEN 'Assessment Question 3'
+	WHEN p.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 4 score (observable entity)' THEN 'Assessment Question 4'
+	WHEN p.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire satisfaction question 1 score (observable entity)' THEN 'Satisfaction Assessment Question 1'
+	WHEN p.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 1 score (observable entity)' THEN 'Treatment Question 1'
+	WHEN p.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 2 score (observable entity)' THEN 'Treatment Question 2'
+	WHEN p.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 3 score (observable entity)' THEN 'Treatment Question 3'
+	WHEN p.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 4 score (observable entity)' THEN 'Treatment Question 4'
+	WHEN p.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 5 score (observable entity)' THEN 'Treatment Question 5'
+	WHEN p.[Term]='Improving Access to Psychological Therapies treatment Patient Experience Questionnaire question 6 score (observable entity)' THEN 'Treatment Question 6'
 	ELSE NULL		
 END AS 'Question'
 ,CASE 
@@ -913,12 +939,15 @@ LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON COALESCE(cc.N
 LEFT JOIN [Reporting].[Ref_ODS_Provider_Hierarchies_ICB] ph ON r.OrgID_Provider = ph.Organisation_Code AND ph.Effective_To IS NULL
 
 LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration] i ON i.PathwayID = r.PathwayID
-LEFT JOIN [mesh_IAPT].[IDS607codedscoreassessmentact] csa ON r.PathwayID=csa.PathwayID AND r.AuditId=csa.AuditId
-AND csa.[CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108'
-	,'747861000000100','747871000000107','747881000000109','904691000000103','747891000000106')
+
+LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_PEQRank] p ON p.PathwayID=r.PathwayID AND p.LatestAnswer=1
+
+--LEFT JOIN [mesh_IAPT].[IDS607codedscoreassessmentact] csa ON r.PathwayID=csa.PathwayID --AND r.AuditId=csa.AuditId
+--AND csa.[CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108'
+--	,'747861000000100','747871000000107','747881000000109','904691000000103','747891000000106')
 	
-LEFT JOIN [UKHD_SNOMED].[Descriptions_SCD] s2 ON CodedAssToolType = CAST(s2.[Concept_ID] AS VARCHAR) 
-	AND s2.Type_ID = 900000000000003001 AND s2.Is_Latest = 1 AND s2.Active = 1
+--LEFT JOIN [UKHD_SNOMED].[Descriptions_SCD] s2 ON CodedAssToolType = CAST(s2.[Concept_ID] AS VARCHAR) 
+--	AND s2.Type_ID = 900000000000003001 AND s2.Is_Latest = 1 AND s2.Active = 1
 WHERE l.IsLatest = 1	--To get the latest data
 	AND UsePathway_Flag='True'
 	AND r.CompletedTreatment_Flag = 'True'	--Data is filtered to only look at those who have completed a course of treatment
