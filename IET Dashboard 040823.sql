@@ -1,5 +1,10 @@
------------------
---For clinical time for just IET
+/****** Script for Internet Enabled Therapies Dashboard to produce tables for Appointments, Clinical Outcomes by Therapy Type, Clinical Outcomes by Problem Descriptor,
+Reason for Ending Treatment, Finished Treatment, Integration Engine, Severity, Pathway Type and PEQ ******/
+
+----------------------------------------- IET Appointments Clinical Time--------------------------------
+--This table calculates the total clinical time per PathwayID and therapy type for just IET Appointments.
+--This is used below to include the IET therapist time per treatment in the [MHDInternal].[TEMP_TTAD_IET_Base] 
+--which is used in the averages script to calculate the average IET therapist time per treatment.
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_TypeAndDuration]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration]
 SELECT  
     i.PathwayID
@@ -12,8 +17,10 @@ INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON i.[UniqueSubmissionID] = l.[
 WHERE l.IsLatest = 1 
 GROUP BY i.PathwayID, i.IntEnabledTherProg, i.IntegratedSoftwareInd
 
-
---For clinical time including IET
+----------------------------------------- Any Appointment Type Clinical Time--------------------------------
+--This table calculates the total clinical time per PathwayID for any appointment type (including IET).
+--This is used below to include the any therapist time per treatment in the [MHDInternal].[TEMP_TTAD_IET_Base] 
+--which is used in the averages script to calculate the average any therapist time per treatment.
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_NoIETDuration]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_NoIETDuration]
 SELECT  
     ca.PathwayID
@@ -24,42 +31,7 @@ INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON ca.[UniqueSubmissionID] = l.
 WHERE l.IsLatest = 1 
 GROUP BY ca.PathwayID
 
-
--- IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_ConsMed]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_ConsMed]
-
--- SELECT
--- 	PathwayID
--- 	,SUM([Face to face communication]) AS [Face to face communication]
--- 	-- ,SUM([Other]) AS [Other]
--- INTO [MHDInternal].[TEMP_TTAD_IET_ConsMed]
--- FROM(
--- 	SELECT DISTINCT 
--- 			c.[PathwayID]
--- 			,c.Unique_CareContactID
--- 			,CASE WHEN (c.ConsMechanism IN ('01', '1', '1 ', ' 1') OR c.ConsMediumUsed IN ('01', '1', '1 ', ' 1'))
--- 					AND c.Unique_CareContactID IS NOT NULL
--- 				THEN 1 
--- 				END AS 'Face to face communication'
--- 			-- ,CASE WHEN c.ConsMechanism IN ('02', '2', '2 ', ' 2','03', '3', '3 ', ' 3','04', '4', '4 '
--- 			-- 		, ' 4','05', '5', '5 ', ' 5','06', '6', '6 ', ' 6','98', '98 ', ' 98','08', '8', '8 '
--- 			-- 		, ' 8','09', '9', '9 ', ' 9','10', '10', '10 ', ' 10','11', '11', '11 ', ' 11','12'
--- 			-- 		, '12', '12 ', ' 12','13', '13', '13 ', ' 13') 
--- 			-- 		OR c.ConsMediumUsed IN ('02', '2', '2 ', ' 2','03', '3', '3 ', ' 3','04', '4', '4 ', ' 4'
--- 			-- 		,'05', '5', '5 ', ' 5','06', '6', '6 ', ' 6','98', '98 ', ' 98','08', '8', '8 ', ' 8','09'
--- 			-- 		, '9', '9 ', ' 9','10', '10', '10 ', ' 10','11', '11', '11 ', ' 11','12', '12', '12 '
--- 			-- 		, ' 12','13', '13', '13 ', ' 13') 
--- 			-- 		AND c.Unique_CareContactID IS NOT NULL
--- 			-- 	THEN 1 
--- 			-- END AS 'Other'
-	
--- 	FROM [mesh_IAPT].[IDS201carecontact] c
--- 	INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON c.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND c.AuditId = l.AuditId
--- 	WHERE (c.[AttendOrDNACode] in ('5','6') or c.PlannedCareContIndicator = 'N') AND c.AppType IN ('01','02','03','05') and IsLatest = 1
--- )_
--- GROUP BY PathwayID
-
-------------------------------------------------------------------------------------------------------------------
-------------------------------------------Base table 
+------------------------------------------Main Base table-------------------------------------
 --This creates a base table with one record per row which is then aggregated to produce [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 DECLARE @PeriodStart DATE
 DECLARE @PeriodEnd DATE 
@@ -83,7 +55,7 @@ SELECT DISTINCT
     WHEN DATENAME(q, l.ReportingPeriodStartDate)=2 THEN 'Q1' + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR)
     WHEN DATENAME(q, l.ReportingPeriodStartDate)=3 THEN 'Q2' + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR)
     WHEN DATENAME(q, l.ReportingPeriodStartDate)=4 THEN 'Q3' + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR)
-	END AS Quarter	
+	END AS Quarter	--Financial year quarters
 	,l.ReportingPeriodStartDate
 	,l.ReportingPeriodEndDate
 	,r.PathwayID
@@ -104,7 +76,6 @@ SELECT DISTINCT
     ,r.InternetEnabledTherapy_Count
 
     --Type of IET
-	--,i.IntEnabledTherProg
 	,CASE WHEN (i.IntEnabledTherProg LIKE 'SilverCloud%' OR i.IntEnabledTherProg LIKE  'Slvrcld%' ) THEN 'SilverCloud'
 		WHEN (i.IntEnabledTherProg LIKE 'Mnddstrct%' OR i.IntEnabledTherProg LIKE 'Minddistrict%') THEN 'Minddistrict'
 		WHEN i.IntEnabledTherProg LIKE 'iCT%' THEN 'iCT'
@@ -119,10 +90,6 @@ SELECT DISTINCT
 
 	--Integration Engine Flag
 	,i.IntegratedSoftwareInd
-
-	--Consultation Medium
-	-- ,CASE WHEN m.[Face to face communication]>0 THEN 'F2F' ELSE 'No F2F'
-	-- 	END AS ConsultationMedium
 
 	--Reasons for Ending Treatment
 	,r.EndCode
@@ -186,13 +153,15 @@ SELECT DISTINCT
 	,CASE WHEN r.GAD_FirstScore BETWEEN 0 AND 4 THEN 'Minimal Anxiety'
 		WHEN r.GAD_FirstScore BETWEEN 5 AND 9 THEN 'Mild Anxiety'
 		WHEN r.GAD_FirstScore BETWEEN 10 AND 14 THEN 'Moderate Anxiety'
-		WHEN r.GAD_FirstScore > 14 THEN 'Severe Anxiety' END AS 'GAD7 Cluster'
+		WHEN r.GAD_FirstScore > 14 THEN 'Severe Anxiety' 
+	END AS 'GAD7 Cluster'
 
 	,CASE WHEN r.PHQ9_FirstScore BETWEEN 0 AND 4 THEN 'None-Minimal'
 		WHEN r.PHQ9_FirstScore BETWEEN 5 AND 9 THEN 'Mild'
 		WHEN r.PHQ9_FirstScore BETWEEN 10 AND 14 THEN 'Moderate'
 		WHEN r.PHQ9_FirstScore BETWEEN 15 AND 19 THEN 'Moderate Severe'
-		WHEN r.PHQ9_FirstScore BETWEEN 20 AND 27 THEN 'Severe' END AS 'PHQ9 Cluster'
+		WHEN r.PHQ9_FirstScore BETWEEN 20 AND 27 THEN 'Severe' 
+	END AS 'PHQ9 Cluster'
 
 	,CASE WHEN r.InternetEnabledTherapy_Count=0 AND r.TreatmentCareContact_Count>0
 		THEN 'No IET'
@@ -203,31 +172,24 @@ SELECT DISTINCT
 	END AS UniqueMixedPathway
 
     --Geography
-	,r.OrgIDComm AS RefTableCode
-	,cc.Org_Code AS ComChangesCode
-	,ch.ODS_Organisation_Type
-    ,ch.Organisation_Code as 'Sub-ICBCode'
-	,ch.Organisation_Name as 'Sub-ICBName'
-	,ch.STP_Code as 'ICBCode'
-	,ch.STP_Name as 'ICBName'
-	,ch.Region_Name as 'RegionNameComm'
-	,ch.Region_Code as 'RegionCodeComm'
-	,ph.Organisation_Code as 'ProviderCode'
-	,ph.Organisation_Name as 'ProviderName'
-	,ph.Region_Name as 'RegionNameProv'
-	--,ph.Region_Code as 'RegionCodeProv'
+    ,CASE WHEN ch.[Organisation_Code] IS NOT NULL THEN ch.[Organisation_Code] ELSE 'Other' END AS 'Sub-ICBCode'
+	,CASE WHEN ch.[Organisation_Name] IS NOT NULL THEN ch.[Organisation_Name] ELSE 'Other' END AS 'Sub-ICBName'
+	,CASE WHEN ch.[STP_Code] IS NOT NULL THEN ch.[STP_Code] ELSE 'Other' END AS 'ICBCode'
+	,CASE WHEN ch.[STP_Name] IS NOT NULL THEN ch.[STP_Name] ELSE 'Other' END AS 'ICBName'
+	,CASE WHEN ch.[Region_Name] IS NOT NULL THEN ch.[Region_Name] ELSE 'Other' END AS'RegionNameComm'
+	,CASE WHEN ch.[Region_Code] IS NOT NULL THEN ch.[Region_Code] ELSE 'Other' END AS 'RegionCodeComm'
+	,CASE WHEN ph.[Organisation_Code] IS NOT NULL THEN ph.[Organisation_Code] ELSE 'Other' END AS 'ProviderCode'
+	,CASE WHEN ph.[Organisation_Name] IS NOT NULL THEN ph.[Organisation_Name] ELSE 'Other' END AS 'ProviderName'
+	,CASE WHEN ph.[Region_Name] IS NOT NULL THEN ph.[Region_Name] ELSE 'Other' END AS 'RegionNameProv'
 INTO [MHDInternal].[TEMP_TTAD_IET_Base]
 FROM [MESH_IAPT].[IDS101referral] r
 
 INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON r.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND r.[AuditId] = l.[AuditId]
---Three tables for getting the up-to-date Sub-ICB/ICB/Region/Provider names/codes:
---LEFT JOIN [MHDInternal].[REFERENCE_CCG_2020_Lookup] c ON r.OrgIDComm = c.IC_CCG					
---LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON c.CCG21 = ch.Organisation_Code AND ch.Effective_To IS NULL
 
+--Three tables for getting the up-to-date Sub-ICB/ICB/Region/Provider names/codes:
 LEFT JOIN [Internal_Reference].[ComCodeChanges] cc ON r.OrgIDComm = cc.Org_Code COLLATE database_default
-LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON COALESCE(cc.New_Code, r.OrgIDComm) = ch.Organisation_Code COLLATE database_default
---This filters so that only current Sub-ICBs and not NonSTPs are used
-AND ch.ODS_Organisation_Type='CLINICAL COMMISSIONING GROUP' AND ch.Effective_To IS NULL AND ch.STP_Name<>'NonSTP (England Region)'
+LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON COALESCE(cc.New_Code, r.OrgIDComm) = ch.Organisation_Code COLLATE database_default 
+	AND ch.Effective_To IS NULL
 
 --[Internal_Reference].[Provider_Successor] needs adding once in the mart
 LEFT JOIN [Reporting].[Ref_ODS_Provider_Hierarchies_ICB] ph ON r.OrgID_Provider = ph.Organisation_Code AND ph.Effective_To IS NULL
@@ -235,19 +197,19 @@ LEFT JOIN [Reporting].[Ref_ODS_Provider_Hierarchies_ICB] ph ON r.OrgID_Provider 
 LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration] i ON i.PathwayID = r.PathwayID
 LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_NoIETDuration] ca ON ca.PathwayID=r.PathwayID
 
-WHERE 
-r.UsePathway_Flag = 'True' 
+WHERE r.UsePathway_Flag = 'True' 
 	AND l.IsLatest = 1	--To get the latest data
 	AND r.CompletedTreatment_Flag = 'True'	--Data is filtered to only look at those who have completed a course of treatment
 	AND r.ServDischDate BETWEEN l.ReportingPeriodStartDate AND l.ReportingPeriodEndDate	
-	AND r.ReferralRequestReceivedDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart	--for refresh, the offset should be 0 as only want the data for the latest month
+	AND r.ReferralRequestReceivedDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
 	
-	------------------------------------------------------------------------------------	
+------------------------------------------------------------------------------------	
 ----------------------------------------Aggregated Main Table------------------------
 --This table aggregates [MHDInternal].[TEMP_TTAD_IET_Base] table to get the number of PathwayIDs with the recovery flag,
 -- not caseness flag, reliable improvement flag, completed treatment flag, and both the recovery and reliable improvement flag.
 --This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Appointment Types (1+ IET, 2+ IET and No IET),
---by IET Therapy Types, by Integrated Software Indicator, by End Codes, and by Problem Descriptors
+--by IET Therapy Types, by Integration Engine Indicator, by End Codes, by Problem Descriptors, by severity scores,
+-- by pathway type (unique or mixed IET pathway) and Month.
 
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_Main]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 --National, IET 1+
@@ -829,31 +791,32 @@ GROUP BY
 -------------------------------------------------------------------------------
 --For Patient Experience Questionnaire (PEQ)
 
---Ranking PEQs
+--------------------------Ranking PEQ Table-----------------------------------------
+--This table ranks answers using the Effective_From date to get the latest answer.
+--This table is used to produce [MHDInternal].[TEMP_TTAD_IET_BasePEQ].
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_PEQRank]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_PEQRank]
 SELECT DISTINCT 
 *
-,ROW_NUMBER() OVER(PARTITION BY PathwayID,CodedAssToolType ORDER BY Effective_From desc) as LatestAnswer
-
+,ROW_NUMBER() OVER(PARTITION BY PathwayID,CodedAssToolType ORDER BY Effective_From desc) as LatestAnswer 
 INTO [MHDInternal].[TEMP_TTAD_IET_PEQRank]
 FROM(
-SELECT DISTINCT 
-csa.PathwayID
-,csa.CodedAssToolType
-,s2.Term
-,csa.PersScore
-,csa.EFFECTIVE_FROM
- FROM [mesh_IAPT].[IDS607codedscoreassessmentact] csa 
-LEFT JOIN [UKHD_SNOMED].[Descriptions_SCD] s2 ON CodedAssToolType = CAST(s2.[Concept_ID] AS VARCHAR) 
-	AND s2.Type_ID = 900000000000003001 AND s2.Is_Latest = 1 AND s2.Active = 1
+	SELECT DISTINCT 
+	csa.PathwayID
+	,csa.CodedAssToolType
+	,s2.Term
+	,csa.PersScore
+	,csa.EFFECTIVE_FROM
+	FROM [mesh_IAPT].[IDS607codedscoreassessmentact] csa 
+	LEFT JOIN [UKHD_SNOMED].[Descriptions_SCD] s2 ON CodedAssToolType = CAST(s2.[Concept_ID] AS VARCHAR) 
+		AND s2.Type_ID = 900000000000003001 AND s2.Is_Latest = 1 AND s2.Active = 1
 
-WHERE csa.[CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108'
-	,'747861000000100','747871000000107','747881000000109','904691000000103','747891000000106')
+	WHERE csa.[CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101'
+	,'747941000000105','747951000000108','747861000000100','747871000000107','747881000000109','904691000000103'
+	,'747891000000106') --Snomed codes for the PEQ questions of interest
 )_
 
-------------------------------------
---PEQ Base
-
+-----------------------------------PEQ Base Table------------------------------------------------------------
+--This creates a base table with one record per row which is then aggregated to produce [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
 DECLARE @PeriodStart DATE
 DECLARE @PeriodEnd DATE 
 --For refreshing, the offset for getting the period start and end should be -1 to get the latest refreshed month
@@ -918,43 +881,41 @@ END AS 'Answer'
 	END AS CompTreatFlag --Flag for completed treatment flag, where the discharge date is within the reporting period
     
 --Geography
-    ,ch.Organisation_Code as 'Sub-ICBCode'
-	,ch.Organisation_Name as 'Sub-ICBName'
-	,ch.STP_Code as 'ICBCode'
-	,ch.STP_Name as 'ICBName'
-	,ch.Region_Name as 'RegionNameComm'
-	,ch.Region_Code as 'RegionCodeComm'
-	,ph.Organisation_Code as 'ProviderCode'
-	,ph.Organisation_Name as 'ProviderName'
-	,ph.Region_Name as 'RegionNameProv'
+,CASE WHEN ch.[Organisation_Code] IS NOT NULL THEN ch.[Organisation_Code] ELSE 'Other' END AS 'Sub-ICBCode'
+,CASE WHEN ch.[Organisation_Name] IS NOT NULL THEN ch.[Organisation_Name] ELSE 'Other' END AS 'Sub-ICBName'
+,CASE WHEN ch.[STP_Code] IS NOT NULL THEN ch.[STP_Code] ELSE 'Other' END AS 'ICBCode'
+,CASE WHEN ch.[STP_Name] IS NOT NULL THEN ch.[STP_Name] ELSE 'Other' END AS 'ICBName'
+,CASE WHEN ch.[Region_Name] IS NOT NULL THEN ch.[Region_Name] ELSE 'Other' END AS'RegionNameComm'
+,CASE WHEN ch.[Region_Code] IS NOT NULL THEN ch.[Region_Code] ELSE 'Other' END AS 'RegionCodeComm'
+,CASE WHEN ph.[Organisation_Code] IS NOT NULL THEN ph.[Organisation_Code] ELSE 'Other' END AS 'ProviderCode'
+,CASE WHEN ph.[Organisation_Name] IS NOT NULL THEN ph.[Organisation_Name] ELSE 'Other' END AS 'ProviderName'
+,CASE WHEN ph.[Region_Name] IS NOT NULL THEN ph.[Region_Name] ELSE 'Other' END AS 'RegionNameProv'
 INTO [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
 FROM [MESH_IAPT].[IDS101referral] r
 INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON r.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND r.[AuditId] = l.[AuditId]
+
 --Three tables for getting the up-to-date Sub-ICB/ICB/Region/Provider names/codes:
---LEFT JOIN [MHDInternal].[REFERENCE_CCG_2020_Lookup] c ON r.OrgIDComm = c.IC_CCG					
---LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON c.CCG21 = ch.Organisation_Code AND ch.Effective_To IS NULL
 LEFT JOIN [Internal_Reference].[ComCodeChanges] cc ON r.OrgIDComm = cc.Org_Code COLLATE database_default
 LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON COALESCE(cc.New_Code, r.OrgIDComm) = ch.Organisation_Code COLLATE database_default
-
+	AND ch.Effective_To IS NULL
+--[Internal_Reference].[Provider_Successor] needs adding once in the mart
 LEFT JOIN [Reporting].[Ref_ODS_Provider_Hierarchies_ICB] ph ON r.OrgID_Provider = ph.Organisation_Code AND ph.Effective_To IS NULL
-
+--For IET Therapy Type:
 LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration] i ON i.PathwayID = r.PathwayID
-
+--PEQ Questions and latest answer:
 LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_PEQRank] p ON p.PathwayID=r.PathwayID AND p.LatestAnswer=1
 
---LEFT JOIN [mesh_IAPT].[IDS607codedscoreassessmentact] csa ON r.PathwayID=csa.PathwayID --AND r.AuditId=csa.AuditId
---AND csa.[CodedAssToolType] IN ('747901000000107','747911000000109','747921000000103','747931000000101','747941000000105','747951000000108'
---	,'747861000000100','747871000000107','747881000000109','904691000000103','747891000000106')
-	
---LEFT JOIN [UKHD_SNOMED].[Descriptions_SCD] s2 ON CodedAssToolType = CAST(s2.[Concept_ID] AS VARCHAR) 
---	AND s2.Type_ID = 900000000000003001 AND s2.Is_Latest = 1 AND s2.Active = 1
 WHERE l.IsLatest = 1	--To get the latest data
 	AND UsePathway_Flag='True'
 	AND r.CompletedTreatment_Flag = 'True'	--Data is filtered to only look at those who have completed a course of treatment
 	AND r.ServDischDate BETWEEN l.ReportingPeriodStartDate AND l.ReportingPeriodEndDate	
-	AND r.ReferralRequestReceivedDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart	--for refresh, the offset should be 0 as only want the data for the latest month
+	AND r.ReferralRequestReceivedDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
 
-
+	
+----------------------------------------Aggregated PEQ Table------------------------
+--This table aggregates [MHDInternal].[TEMP_TTAD_IET_BasePEQ] table to get the number of PathwayIDs with the completed treatment flag.
+--This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Appointment Types 
+--(1+ IET, 2+ IET and No IET), by IET Therapy Types, by PEQ Questions and Answers, and by Month.
 
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_PEQ]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
 --National, IET 1+
@@ -1322,6 +1283,3 @@ GROUP BY
 	,IntEnabledTherProg
 	,Question
 	,Answer
-
-	
-

@@ -1,5 +1,12 @@
+/****** Script for Internet Enabled Therapies Dashboard to produce tables for Appointments, Therapist Time and Wait Times ******/
 
---Avg Waits - didn't want this split by Therapy Type
+-----------------------------Aggregated Average Wait Times-------------------------------------------
+--This table aggregates [MHDInternal].[TEMP_TTAD_IET_Base] table to get the number of PathwayIDs with the completed treatment flag,
+--the average wait from referral to first assessment, the average wait from referral to first therapy and
+--the average wait from first therapy to second therapy.
+--This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Appointment Types 
+--(1+ IET, 2+ IET and No IET) and by Quarter.
+
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 --National, IET 1+
 SELECT 
@@ -305,8 +312,12 @@ GROUP BY
 	,[ProviderName]
 	,[ProviderCode]
 
--------------------------------------------------------------------------------------------------------
--- Avg Appointments per course of treatment, Avg Therapist Time per course of treatment by Therapy Type
+-----------------------------Aggregated Average Appointments and Time per Treatment-------------------------------------------
+--This table aggregates [MHDInternal].[TEMP_TTAD_IET_Base] table to get the number of PathwayIDs with the completed treatment flag,
+--the average number of IET appointments per treatment, the average IET therapist time per treatment and
+--the average any therapist time per treatment.
+--This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Appointment Types 
+--(1+ IET, 2+ IET and No IET), by IET Therapy Types and by Quarter.
 
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AvgApptsAndTimePerTreat]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AvgApptsAndTimePerTreat]
 --National, IET 1+
@@ -643,11 +654,13 @@ GROUP BY
 	,[ProviderCode]
 	,IntEnabledTherProg
 
----------------------------------------------------------------
+---------------------------------------------------------------------------------
 --Average therapist time per contact for IETs and for any contact
 
-----Average IET Contacts
---For IET average therapist time per contact
+----Average IET Contacts:
+--------------------------Ranking IET Contacts Table-------------------------------------------------
+--This table lists each IET contact for each PathwayID and also ranks them so the latest contact is labelled as 1.
+--It is used to produce [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase].
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_IETContacts]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_IETContacts]
 SELECT
 *
@@ -666,7 +679,8 @@ FROM(
 	WHERE l.IsLatest = 1
 )_
 
---Base table for Average Therapist Time per IET contact
+-------------------Base table for Average Therapist Time per IET contact---------------------------------------
+--This creates a base table with one IET contact per row which is then aggregated to produce [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 SELECT DISTINCT
 	b.Month
@@ -685,7 +699,7 @@ SELECT DISTINCT
 	,IntEnabledTherProg
 
 	,CASE WHEN i.LatestContactRank=1 OR i.LatestContactRank IS NULL THEN b.CompTreatFlag ELSE NULL 
-	END AS CompTreatFlag --Flag for completed treatment flag, where the discharge date is within the reporting period
+	END AS CompTreatFlag --Flag for completed treatment flag, where the LatestContactRank is 1 or null so that each PathwayID is only counted once
     
     --Geography
     ,b.[Sub-ICBCode]
@@ -700,6 +714,13 @@ SELECT DISTINCT
 INTO [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 FROM [MHDInternal].[TEMP_TTAD_IET_Base] b
 LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_IETContacts] i ON i.PathwayID = b.PathwayID 
+
+-----------------------------Aggregated Average IET Therapist Time per Contact-------------------------------------------
+--This table aggregates [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase] table to get the number of PathwayIDs with the completed treatment flag
+--and the average IET Therapist Time.
+--This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Appointment Types 
+--(1+ IET, 2+ IET and No IET), by IET Therapy Types and by Quarter.
+
 
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 --National, IET 1+
@@ -1006,10 +1027,12 @@ GROUP BY
 	,[ProviderCode]
 	,IntEnabledTherProg
 
-
-
 ---------------------------------------------------------
---For all contacts average therapist time per contact
+----Average Any Contacts:
+
+--------------------------Ranking Any Contacts Table-------------------------------------------------
+--This table lists each contact for each PathwayID and also ranks them so the latest contact is labelled as 1.
+--It is used to produce [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase].
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_AllContacts]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AllContacts]
 SELECT
 *
@@ -1028,6 +1051,8 @@ AND ca.AuditId=c.AuditId
 WHERE l.IsLatest = 1
 )_
 
+-------------------Base table for Average Therapist Time per Any contact---------------------------------------
+--This creates a base table with one contact per row which is then aggregated to produce [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 SELECT DISTINCT
 	b.Month
@@ -1046,7 +1071,7 @@ SELECT DISTINCT
 	,IntEnabledTherProg
 
 	,CASE WHEN ca.LatestContactRank=1 OR ca.LatestContactRank IS NULL THEN b.CompTreatFlag ELSE NULL 
-	END AS CompTreatFlag --Flag for completed treatment flag, where the discharge date is within the reporting period
+	END AS CompTreatFlag --Flag for completed treatment flag, where the LatestContactRank is 1 or null so that each PathwayID is only counted once
     
     --Geography
     ,b.[Sub-ICBCode]
@@ -1062,8 +1087,11 @@ INTO [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 FROM [MHDInternal].[TEMP_TTAD_IET_Base] b
 LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_AllContacts] ca ON ca.PathwayID=b.PathwayID
 
-
-----------
+-----------------------------Aggregated Average Any Therapist Time per Contact-------------------------------------------
+--This table aggregates [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase] table to get the number of PathwayIDs with the completed treatment flag
+--and the average Any Therapist Time.
+--This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Appointment Types 
+--(1+ IET, 2+ IET and No IET), by IET Therapy Types and by Quarter.
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 --National, IET 1+
 SELECT 
