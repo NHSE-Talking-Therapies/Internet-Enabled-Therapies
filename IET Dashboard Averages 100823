@@ -721,7 +721,6 @@ LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_IETContacts] i ON i.PathwayID = b.Pathway
 --This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Appointment Types 
 --(1+ IET, 2+ IET and No IET), by IET Therapy Types and by Quarter.
 
-
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 --National, IET 1+
 SELECT 

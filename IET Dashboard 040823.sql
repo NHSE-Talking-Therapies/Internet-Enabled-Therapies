@@ -202,6 +202,7 @@ WHERE r.UsePathway_Flag = 'True'
 	AND r.CompletedTreatment_Flag = 'True'	--Data is filtered to only look at those who have completed a course of treatment
 	AND r.ServDischDate BETWEEN l.ReportingPeriodStartDate AND l.ReportingPeriodEndDate	
 	AND r.ReferralRequestReceivedDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
+	AND l.ReportingPeriodStartDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
 	
 ------------------------------------------------------------------------------------	
 ----------------------------------------Aggregated Main Table------------------------
@@ -910,7 +911,7 @@ WHERE l.IsLatest = 1	--To get the latest data
 	AND r.CompletedTreatment_Flag = 'True'	--Data is filtered to only look at those who have completed a course of treatment
 	AND r.ServDischDate BETWEEN l.ReportingPeriodStartDate AND l.ReportingPeriodEndDate	
 	AND r.ReferralRequestReceivedDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
-
+	AND l.ReportingPeriodStartDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
 	
 ----------------------------------------Aggregated PEQ Table------------------------
 --This table aggregates [MHDInternal].[TEMP_TTAD_IET_BasePEQ] table to get the number of PathwayIDs with the completed treatment flag.
