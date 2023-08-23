@@ -39,9 +39,10 @@ DECLARE @PeriodEnd DATE
 SET @PeriodStart = (SELECT DATEADD(MONTH,-1,MAX([ReportingPeriodStartDate])) FROM [mesh_IAPT].[IsLatest_SubmissionID])
 SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-1,MAX([ReportingPeriodEndDate]))) FROM [mesh_IAPT].[IsLatest_SubmissionID])
 
---The offset needs to be set for September 2020 (e.g. @PeriodStart -30 = -31 which is the offset of September 2020)
+--For monthly refresh the offset needs to be set for September 2020 (e.g. @PeriodStart -30 = -31 which is the offset of September 2020)
+--The full period is run due to the average tables (which use this base table) recalculating the averages for each quarter
 DECLARE @Offset int
-SET @Offset=-32
+SET @Offset=-32		 
 
 SET DATEFIRST 1
 
@@ -211,7 +212,7 @@ WHERE r.UsePathway_Flag = 'True'
 --This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Appointment Types (1+ IET, 2+ IET and No IET),
 --by IET Therapy Types, by Integration Engine Indicator, by End Codes, by Problem Descriptors, by severity scores,
 -- by pathway type (unique or mixed IET pathway) and Month.
-
+--The full table is re-run each month as base table contains all months
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_Main]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_Main]
 --National, IET 1+
 SELECT 
@@ -824,9 +825,9 @@ DECLARE @PeriodEnd DATE
 SET @PeriodStart = (SELECT DATEADD(MONTH,-1,MAX([ReportingPeriodStartDate])) FROM [mesh_IAPT].[IsLatest_SubmissionID])
 SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-1,MAX([ReportingPeriodEndDate]))) FROM [mesh_IAPT].[IsLatest_SubmissionID])
 
---The offset needs to be set for September 2020 (e.g. @PeriodStart -30 = -31 which is the offset of September 2020)
+--For monthly refresh the offset should be set to 0 as we only want the latest refreshed month
 DECLARE @Offset int
-SET @Offset=-32
+SET @Offset=0 
 
 SET DATEFIRST 1
 
@@ -917,8 +918,10 @@ WHERE l.IsLatest = 1	--To get the latest data
 --This table aggregates [MHDInternal].[TEMP_TTAD_IET_BasePEQ] table to get the number of PathwayIDs with the completed treatment flag.
 --This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Appointment Types 
 --(1+ IET, 2+ IET and No IET), by IET Therapy Types, by PEQ Questions and Answers, and by Month.
+--Only the latest refreshed month is added each month
 
-IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_PEQ]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+--IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_PEQ]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
 --National, IET 1+
 SELECT 
 Month
@@ -932,7 +935,7 @@ Month
 ,Question
 ,Answer
 ,SUM(CompTreatFlag) AS CompTreatFlag
-INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+--INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
 FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 

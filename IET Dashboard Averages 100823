@@ -6,6 +6,7 @@
 --the average wait from first therapy to second therapy.
 --This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Appointment Types 
 --(1+ IET, 2+ IET and No IET) and by Quarter.
+--The full table is re-run each month as the averages need recalculating for quarters
 
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 --National, IET 1+
@@ -318,6 +319,7 @@ GROUP BY
 --the average any therapist time per treatment.
 --This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Appointment Types 
 --(1+ IET, 2+ IET and No IET), by IET Therapy Types and by Quarter.
+--The full table is re-run each month as the averages need recalculating for quarters
 
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AvgApptsAndTimePerTreat]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AvgApptsAndTimePerTreat]
 --National, IET 1+
@@ -720,6 +722,7 @@ LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_IETContacts] i ON i.PathwayID = b.Pathway
 --and the average IET Therapist Time.
 --This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Appointment Types 
 --(1+ IET, 2+ IET and No IET), by IET Therapy Types and by Quarter.
+--The full table is re-run each month as the averages need recalculating for quarters
 
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 --National, IET 1+
@@ -1091,6 +1094,8 @@ LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_AllContacts] ca ON ca.PathwayID=b.Pathway
 --and the average Any Therapist Time.
 --This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Appointment Types 
 --(1+ IET, 2+ IET and No IET), by IET Therapy Types and by Quarter.
+--The full table is re-run each month as the averages need recalculating for quarters
+
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 --National, IET 1+
 SELECT 
@@ -1395,3 +1400,16 @@ GROUP BY
 	,[ProviderName]
 	,[ProviderCode]
 	,IntEnabledTherProg
+
+
+-----------------------------------------
+--Drop Temp Tables:
+--DROP TABLE [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration]
+--DROP TABLE [MHDInternal].[TEMP_TTAD_IET_NoIETDuration]
+--DROP TABLE [MHDInternal].[TEMP_TTAD_IET_Base]
+--DROP TABLE [MHDInternal].[TEMP_TTAD_IET_PEQRank]
+--DROP TABLE [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+--DROP TABLE [MHDInternal].[TEMP_TTAD_IET_IETContacts]
+--DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+--DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AllContacts]
+--DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
