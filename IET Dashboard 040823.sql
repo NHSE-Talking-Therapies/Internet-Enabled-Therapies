@@ -88,6 +88,9 @@ SELECT DISTINCT
 	--Therapist Time
 	,i.DurationIntEnabledTher
 	,ca.ClinContactDurOfCareAct
+	,CASE WHEN (i.DurationIntEnabledTher IS NULL OR i.DurationIntEnabledTher=0) THEN 'No Therapist Time Recorded'
+		WHEN i.DurationIntEnabledTher>0 THEN 'Therapist Time Recorded'
+	END AS TherapistTimeRecorded
 
 	--Integration Engine Flag
 	,i.IntegratedSoftwareInd
@@ -790,6 +793,109 @@ GROUP BY
 	,[PHQ9 Cluster]
 	,UniqueMixedPathway
 
+------------------------------------Aggregate IET Therapist Time Record
+IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
+--National
+SELECT
+Month
+,CAST('National' AS VARCHAR(50)) AS OrgType
+,CAST('All Regions' AS VARCHAR(255)) AS Region
+,CAST('England' AS VARCHAR(255)) AS OrgName
+,CAST('ENG' AS VARCHAR(50)) AS OrgCode
+,TherapistTimeRecorded
+,IntEnabledTherProg
+,SUM(CompTreatFlag) AS CompTreatFlag
+INTO [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
+WHERE IntEnabledTherProg<>'No IET'
+GROUP BY 
+	Month
+	,IntEnabledTherProg
+	,TherapistTimeRecorded
+GO
+
+--Region
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
+SELECT 
+Month
+,'Region' AS OrgType
+,RegionNameComm AS Region
+,RegionNameComm AS OrgName
+,RegionCodeComm AS OrgCode
+,TherapistTimeRecorded
+,IntEnabledTherProg
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
+WHERE IntEnabledTherProg<>'No IET'
+GROUP BY 
+	Month
+	,RegionNameComm
+	,RegionCodeComm
+	,IntEnabledTherProg
+	,TherapistTimeRecorded
+
+--ICB
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
+SELECT 
+Month
+,'ICB' AS OrgType
+,RegionNameComm AS Region
+,[ICBName] AS OrgName
+,[ICBCode] AS OrgCode
+,TherapistTimeRecorded
+,IntEnabledTherProg
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
+WHERE IntEnabledTherProg<>'No IET'
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[ICBName]
+	,[ICBCode]
+	,IntEnabledTherProg
+	,TherapistTimeRecorded
+
+--Sub-ICB
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
+SELECT 
+Month
+,'Sub-ICB' AS OrgType
+,RegionNameComm AS Region
+,[Sub-ICBName] AS OrgName
+,[Sub-ICBCode] AS OrgCode
+,TherapistTimeRecorded
+,IntEnabledTherProg
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
+WHERE IntEnabledTherProg<>'No IET'
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[Sub-ICBName]
+	,[Sub-ICBCode]
+	,IntEnabledTherProg
+	,TherapistTimeRecorded
+
+--Provider
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
+SELECT 
+Month
+,'Provider' AS OrgType
+,RegionNameProv AS Region
+,[ProviderName] AS OrgName
+,[ProviderCode] AS OrgCode
+,TherapistTimeRecorded
+,IntEnabledTherProg
+,SUM(CompTreatFlag) AS CompTreatFlag
+FROM [MHDInternal].[TEMP_TTAD_IET_Base]
+WHERE IntEnabledTherProg<>'No IET'
+GROUP BY 
+	Month
+	,RegionNameProv
+	,[ProviderName]
+	,[ProviderCode]
+	,IntEnabledTherProg
+	,TherapistTimeRecorded
 -------------------------------------------------------------------------------
 --For Patient Experience Questionnaire (PEQ)
 
