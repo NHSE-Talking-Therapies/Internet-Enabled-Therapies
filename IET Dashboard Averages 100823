@@ -660,27 +660,6 @@ GROUP BY
 --Average therapist time per contact for IETs and for any contact
 
 ----Average IET Contacts:
---------------------------Ranking IET Contacts Table-------------------------------------------------
---This table lists each IET contact for each PathwayID and also ranks them so the latest contact is labelled as 1.
---It is used to produce [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase].
-IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_IETContacts]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_IETContacts]
-SELECT
-*
-,ROW_NUMBER() OVER(PARTITION BY PathwayID ORDER BY StartDateIntEnabledTherLog desc) as LatestContactRank
-INTO [MHDInternal].[TEMP_TTAD_IET_IETContacts]	
-FROM(
-	SELECT DISTINCT
-		i.PathwayID
-		,i.StartDateIntEnabledTherLog
-		,i.EndDateIntEnabledTherLog
-		,i.DurationIntEnabledTher
-		,i.Unique_MonthID
-	
-	FROM [mesh_IAPT].[IDS205internettherlog] i
-	INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON i.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND i.[AuditId] = l.[AuditId]
-	WHERE l.IsLatest = 1
-)_
-
 -------------------Base table for Average Therapist Time per IET contact---------------------------------------
 --This creates a base table with one IET contact per row which is then aggregated to produce [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
@@ -1029,7 +1008,7 @@ GROUP BY
 	,[ProviderCode]
 	,IntEnabledTherProg
 
----------------------------------------------------------
+
 ----Average Any Contacts:
 
 --------------------------Ranking Any Contacts Table-------------------------------------------------
@@ -1400,8 +1379,6 @@ GROUP BY
 	,[ProviderName]
 	,[ProviderCode]
 	,IntEnabledTherProg
-
-
 -----------------------------------------
 --Drop Temp Tables:
 --DROP TABLE [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration]

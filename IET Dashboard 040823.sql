@@ -88,10 +88,7 @@ SELECT DISTINCT
 	--Therapist Time
 	,i.DurationIntEnabledTher
 	,ca.ClinContactDurOfCareAct
-	,CASE WHEN (i.DurationIntEnabledTher IS NULL OR i.DurationIntEnabledTher=0) THEN 'No Therapist Time Recorded'
-		WHEN i.DurationIntEnabledTher>0 THEN 'Therapist Time Recorded'
-	END AS TherapistTimeRecorded --Flag for whether IET therapist time was recorded or not
-
+	
 	--Integration Engine Flag
 	,i.IntegratedSoftwareInd
 
@@ -793,115 +790,6 @@ GROUP BY
 	,[GAD7 Cluster]
 	,[PHQ9 Cluster]
 	,UniqueMixedPathway
-
-------------------------------------Aggregate IET Therapist Time Record
---This table aggregates [MHDInternal].[TEMP_TTAD_IET_Base] table to get the number of PathwayIDs with the completed treatment flag 
---and have an IET therapy type.
---This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Therapist Time Recorded, 
---by IET Therapy Types and Month.
---The full table is re-run each month as base table contains all months
-IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
---National
-SELECT
-Month
-,CAST('National' AS VARCHAR(50)) AS OrgType
-,CAST('All Regions' AS VARCHAR(255)) AS Region
-,CAST('England' AS VARCHAR(255)) AS OrgName
-,CAST('ENG' AS VARCHAR(50)) AS OrgCode
-,TherapistTimeRecorded
-,IntEnabledTherProg
-,SUM(CompTreatFlag) AS CompTreatFlag
-INTO [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
-FROM [MHDInternal].[TEMP_TTAD_IET_Base]
-WHERE IntEnabledTherProg<>'No IET'
-GROUP BY 
-	Month
-	,IntEnabledTherProg
-	,TherapistTimeRecorded
-GO
-
---Region
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
-SELECT 
-Month
-,'Region' AS OrgType
-,RegionNameComm AS Region
-,RegionNameComm AS OrgName
-,RegionCodeComm AS OrgCode
-,TherapistTimeRecorded
-,IntEnabledTherProg
-,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[TEMP_TTAD_IET_Base]
-WHERE IntEnabledTherProg<>'No IET'
-GROUP BY 
-	Month
-	,RegionNameComm
-	,RegionCodeComm
-	,IntEnabledTherProg
-	,TherapistTimeRecorded
-
---ICB
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
-SELECT 
-Month
-,'ICB' AS OrgType
-,RegionNameComm AS Region
-,[ICBName] AS OrgName
-,[ICBCode] AS OrgCode
-,TherapistTimeRecorded
-,IntEnabledTherProg
-,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[TEMP_TTAD_IET_Base]
-WHERE IntEnabledTherProg<>'No IET'
-GROUP BY 
-	Month
-	,RegionNameComm
-	,[ICBName]
-	,[ICBCode]
-	,IntEnabledTherProg
-	,TherapistTimeRecorded
-
---Sub-ICB
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
-SELECT 
-Month
-,'Sub-ICB' AS OrgType
-,RegionNameComm AS Region
-,[Sub-ICBName] AS OrgName
-,[Sub-ICBCode] AS OrgCode
-,TherapistTimeRecorded
-,IntEnabledTherProg
-,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[TEMP_TTAD_IET_Base]
-WHERE IntEnabledTherProg<>'No IET'
-GROUP BY 
-	Month
-	,RegionNameComm
-	,[Sub-ICBName]
-	,[Sub-ICBCode]
-	,IntEnabledTherProg
-	,TherapistTimeRecorded
-
---Provider
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
-SELECT 
-Month
-,'Provider' AS OrgType
-,RegionNameProv AS Region
-,[ProviderName] AS OrgName
-,[ProviderCode] AS OrgCode
-,TherapistTimeRecorded
-,IntEnabledTherProg
-,SUM(CompTreatFlag) AS CompTreatFlag
-FROM [MHDInternal].[TEMP_TTAD_IET_Base]
-WHERE IntEnabledTherProg<>'No IET'
-GROUP BY 
-	Month
-	,RegionNameProv
-	,[ProviderName]
-	,[ProviderCode]
-	,IntEnabledTherProg
-	,TherapistTimeRecorded
 -------------------------------------------------------------------------------
 --For Patient Experience Questionnaire (PEQ)
 
@@ -1400,3 +1288,209 @@ GROUP BY
 	,IntEnabledTherProg
 	,Question
 	,Answer
+
+
+
+---------------------------------------------------------
+---Number of Appointments and Recording of Therapist Time
+
+--------------------------Ranking IET Contacts Table-------------------------------------------------
+--This table lists each IET contact for each PathwayID and also ranks them so the latest contact is labelled as 1.
+--It is used to produce [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase] in the averages script and [MHDInternal].[TEMP_TTAD_IET_BaseAppts]
+IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_IETContacts]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_IETContacts]
+SELECT
+*
+,ROW_NUMBER() OVER(PARTITION BY PathwayID ORDER BY StartDateIntEnabledTherLog desc) as LatestContactRank
+INTO [MHDInternal].[TEMP_TTAD_IET_IETContacts]	
+FROM(
+	SELECT DISTINCT
+		i.PathwayID
+		,i.StartDateIntEnabledTherLog
+		,i.EndDateIntEnabledTherLog
+		,i.DurationIntEnabledTher
+		,i.Unique_MonthID
+	
+	FROM [mesh_IAPT].[IDS205internettherlog] i
+	INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON i.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND i.[AuditId] = l.[AuditId]
+	WHERE l.IsLatest = 1
+)_
+------------------------------------------Appts Base table-------------------------------------
+--This creates a base table with one record per row which is then aggregated to produce [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
+-- DECLARE @PeriodStart DATE
+-- DECLARE @PeriodEnd DATE 
+-- --For refreshing, the offset for getting the period start and end should be -1 to get the latest refreshed month
+-- SET @PeriodStart = (SELECT DATEADD(MONTH,-1,MAX([ReportingPeriodStartDate])) FROM [mesh_IAPT].[IsLatest_SubmissionID])
+-- SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-1,MAX([ReportingPeriodEndDate]))) FROM [mesh_IAPT].[IsLatest_SubmissionID])
+
+-- --For monthly refresh the offset needs to be set for September 2020 (e.g. @PeriodStart -30 = -31 which is the offset of September 2020)
+-- --The full period is run due to the average tables (which use this base table) recalculating the averages for each quarter
+-- DECLARE @Offset int
+-- SET @Offset=-32		 
+
+-- SET DATEFIRST 1
+
+-- PRINT @PeriodStart
+-- PRINT @PeriodEnd
+
+-- IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_BaseAppts]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_BaseAppts]
+-- SELECT DISTINCT
+-- 	CAST(DATENAME(m, l.ReportingPeriodStartDate) + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR) AS DATE) AS Month
+-- 	,r.PathwayID
+-- 	,r.Unique_MonthID
+
+--     --Type of IET
+-- 	,CASE WHEN (i.IntEnabledTherProg LIKE 'SilverCloud%' OR i.IntEnabledTherProg LIKE  'Slvrcld%' ) THEN 'SilverCloud'
+-- 		WHEN (i.IntEnabledTherProg LIKE 'Mnddstrct%' OR i.IntEnabledTherProg LIKE 'Minddistrict%') THEN 'Minddistrict'
+-- 		WHEN i.IntEnabledTherProg LIKE 'iCT%' THEN 'iCT'
+-- 		WHEN i.IntEnabledTherProg LIKE 'OCD%' THEN 'OCD-NET'
+-- 		WHEN i.IntEnabledTherProg IS NULL THEN 'No IET'
+-- 		ELSE i.IntEnabledTherProg
+-- 		END IntEnabledTherProg
+	
+-- 	--Therapist Time
+-- 	,i.DurationIntEnabledTher
+-- 	,CASE WHEN (i.DurationIntEnabledTher IS NULL OR i.DurationIntEnabledTher=0) THEN 'No Therapist Time Recorded'
+-- 		WHEN i.DurationIntEnabledTher>0 THEN 'Therapist Time Recorded'
+-- 	END AS TherapistTimeRecorded --Flag for whether IET therapist time was recorded or not
+
+-- 	,ic.StartDateIntEnabledTherLog
+--     --Geography
+--     ,CASE WHEN ch.[Organisation_Code] IS NOT NULL THEN ch.[Organisation_Code] ELSE 'Other' END AS 'Sub-ICBCode'
+-- 	,CASE WHEN ch.[Organisation_Name] IS NOT NULL THEN ch.[Organisation_Name] ELSE 'Other' END AS 'Sub-ICBName'
+-- 	,CASE WHEN ch.[STP_Code] IS NOT NULL THEN ch.[STP_Code] ELSE 'Other' END AS 'ICBCode'
+-- 	,CASE WHEN ch.[STP_Name] IS NOT NULL THEN ch.[STP_Name] ELSE 'Other' END AS 'ICBName'
+-- 	,CASE WHEN ch.[Region_Name] IS NOT NULL THEN ch.[Region_Name] ELSE 'Other' END AS'RegionNameComm'
+-- 	,CASE WHEN ch.[Region_Code] IS NOT NULL THEN ch.[Region_Code] ELSE 'Other' END AS 'RegionCodeComm'
+-- 	,CASE WHEN ph.[Organisation_Code] IS NOT NULL THEN ph.[Organisation_Code] ELSE 'Other' END AS 'ProviderCode'
+-- 	,CASE WHEN ph.[Organisation_Name] IS NOT NULL THEN ph.[Organisation_Name] ELSE 'Other' END AS 'ProviderName'
+-- 	,CASE WHEN ph.[Region_Name] IS NOT NULL THEN ph.[Region_Name] ELSE 'Other' END AS 'RegionNameProv'
+-- INTO [MHDInternal].[TEMP_TTAD_IET_BaseAppts]
+-- FROM [MESH_IAPT].[IDS101referral] r
+
+-- INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON r.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND r.[AuditId] = l.[AuditId]
+
+-- --Four tables for getting the up-to-date Sub-ICB/ICB/Region/Provider names/codes:
+-- LEFT JOIN [Internal_Reference].[ComCodeChanges] cc ON r.OrgIDComm = cc.Org_Code COLLATE database_default
+-- LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON COALESCE(cc.New_Code, r.OrgIDComm) = ch.Organisation_Code COLLATE database_default 
+-- 	AND ch.Effective_To IS NULL
+
+-- LEFT JOIN [Internal_Reference].[Provider_Successor] ps ON r.OrgID_Provider = ps.Prov_original COLLATE database_default
+-- LEFT JOIN [Reporting].[Ref_ODS_Provider_Hierarchies_ICB] ph ON COALESCE(ps.Prov_Successor, r.OrgID_Provider) = ph.Organisation_Code COLLATE database_default
+-- 	AND ph.Effective_To IS NULL
+
+-- LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration] i ON i.PathwayID = r.PathwayID
+--  LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_IETContacts] ic ON ic.PathwayID = r.PathwayID and ic.UniqueMonthID=r.UniqueMonthID
+-- WHERE r.UsePathway_Flag = 'True' 
+-- 	AND l.IsLatest = 1	--To get the latest data
+-- 	--AND r.ReferralRequestReceivedDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
+-- 	AND l.ReportingPeriodStartDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
+
+------------------------------------Aggregate IET Therapist Time Record
+--This table aggregates [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase] table to get the number of PathwayIDs with the completed treatment flag 
+--and have an IET therapy type.
+--This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Therapist Time Recorded, 
+--by IET Therapy Types and Month.
+--The full table is re-run each month as base table contains all months
+IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
+--National
+SELECT
+Month
+,CAST('National' AS VARCHAR(50)) AS OrgType
+,CAST('All Regions' AS VARCHAR(255)) AS Region
+,CAST('England' AS VARCHAR(255)) AS OrgName
+,CAST('ENG' AS VARCHAR(50)) AS OrgCode
+,TherapistTimeRecorded
+,IntEnabledTherProg
+,COUNT(StartDateIntEnabledTherLog) AS NumberofAppointments
+INTO [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
+FROM [MHDInternal].[TEMP_TTAD_IET_BaseAppts]
+WHERE IntEnabledTherProg<>'No IET'
+GROUP BY
+	Month
+	,IntEnabledTherProg
+	,TherapistTimeRecorded
+GO
+
+--Region
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
+SELECT 
+Month
+,'Region' AS OrgType
+,RegionNameComm AS Region
+,RegionNameComm AS OrgName
+,RegionCodeComm AS OrgCode
+,TherapistTimeRecorded
+,IntEnabledTherProg
+,COUNT(StartDateIntEnabledTherLog) AS NumberofAppointments
+FROM [MHDInternal].[TEMP_TTAD_IET_BaseAppts]
+WHERE IntEnabledTherProg<>'No IET'
+GROUP BY 
+	Month
+	,RegionNameComm
+	,RegionCodeComm
+	,IntEnabledTherProg
+	,TherapistTimeRecorded
+
+--ICB
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
+SELECT 
+Month
+,'ICB' AS OrgType
+,RegionNameComm AS Region
+,[ICBName] AS OrgName
+,[ICBCode] AS OrgCode
+,TherapistTimeRecorded
+,IntEnabledTherProg
+,COUNT(StartDateIntEnabledTherLog) AS NumberofAppointments
+FROM [MHDInternal].[TEMP_TTAD_IET_BaseAppts]
+WHERE IntEnabledTherProg<>'No IET'
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[ICBName]
+	,[ICBCode]
+	,IntEnabledTherProg
+	,TherapistTimeRecorded
+
+--Sub-ICB
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
+SELECT 
+Month
+,'Sub-ICB' AS OrgType
+,RegionNameComm AS Region
+,[Sub-ICBName] AS OrgName
+,[Sub-ICBCode] AS OrgCode
+,TherapistTimeRecorded
+,IntEnabledTherProg
+,COUNT(StartDateIntEnabledTherLog) AS NumberofAppointments
+FROM [MHDInternal].[TEMP_TTAD_IET_BaseAppts]
+WHERE IntEnabledTherProg<>'No IET'
+GROUP BY 
+	Month
+	,RegionNameComm
+	,[Sub-ICBName]
+	,[Sub-ICBCode]
+	,IntEnabledTherProg
+	,TherapistTimeRecorded
+
+--Provider
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
+SELECT 
+Month
+,'Provider' AS OrgType
+,RegionNameProv AS Region
+,[ProviderName] AS OrgName
+,[ProviderCode] AS OrgCode
+,TherapistTimeRecorded
+,IntEnabledTherProg
+,COUNT(StartDateIntEnabledTherLog) AS NumberofAppointments
+FROM [MHDInternal].[TEMP_TTAD_IET_BaseAppts]
+WHERE IntEnabledTherProg<>'No IET'
+GROUP BY 
+	Month
+	,RegionNameProv
+	,[ProviderName]
+	,[ProviderCode]
+	,IntEnabledTherProg
+	,TherapistTimeRecorded
+---------------------------------------------------------
