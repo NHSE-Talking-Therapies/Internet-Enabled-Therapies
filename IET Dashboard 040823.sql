@@ -795,6 +795,11 @@ GROUP BY
 	,UniqueMixedPathway
 
 ------------------------------------Aggregate IET Therapist Time Record
+--This table aggregates [MHDInternal].[TEMP_TTAD_IET_Base] table to get the number of PathwayIDs with the completed treatment flag 
+--and have an IET therapy type.
+--This is calculated at different Geography levels (National, Regional, ICB, Sub-ICB and Provider), by Therapist Time Recorded, 
+--by IET Therapy Types and Month.
+--The full table is re-run each month as base table contains all months
 IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
 --National
 SELECT
