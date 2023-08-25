@@ -17,9 +17,9 @@ Quarter
 ,CAST('England' AS VARCHAR(255)) AS OrgName
 ,CAST('ENG' AS VARCHAR(50)) AS OrgCode
 ,CAST('1+ IET' AS VARCHAR(50)) AS AppointmentType
-,AVG(WaitRefToFirstAssess) AS AverageWaitFromReferralToFirstAssessment
-,AVG(WaitRefToFirstTherapy) AS AverageWaitFromReferralToFirstTherapy
-,AVG(WaitFirstTherapyToSecondTherapy) AS AverageWaitFromFirstTherapyToSecondTherapy
+,AVG(CAST(WaitRefToFirstAssess AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstAssessment
+,AVG(CAST(WaitRefToFirstTherapy AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstTherapy
+,AVG(CAST(WaitFirstTherapyToSecondTherapy AS DECIMAL(7,2))) AS AverageWaitFromFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlag) AS CompTreatFlag
 INTO [MHDInternal].[DASHBOARD_TTAD_IET_AverageWaits]
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
@@ -37,9 +37,9 @@ Quarter
 ,CAST('England' AS VARCHAR(255)) AS OrgName
 ,CAST('ENG' AS VARCHAR(50)) AS OrgCode
 ,'No IET' AS AppointmentType
-,AVG(WaitRefToFirstAssess) AS AverageWaitFromReferralToFirstAssessment
-,AVG(WaitRefToFirstTherapy) AS AverageWaitFromReferralToFirstTherapy
-,AVG(WaitFirstTherapyToSecondTherapy) AS AverageWaitFromFirstTherapyToSecondTherapy
+,AVG(CAST(WaitRefToFirstAssess AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstAssessment
+,AVG(CAST(WaitRefToFirstTherapy AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstTherapy
+,AVG(CAST(WaitFirstTherapyToSecondTherapy AS DECIMAL(7,2))) AS AverageWaitFromFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -55,9 +55,9 @@ Quarter
 ,CAST('England' AS VARCHAR(255)) AS OrgName
 ,CAST('ENG' AS VARCHAR(50)) AS OrgCode
 ,'2+ IET' AS AppointmentType
-,AVG(WaitRefToFirstAssess) AS AverageWaitFromReferralToFirstAssessment
-,AVG(WaitRefToFirstTherapy) AS AverageWaitFromReferralToFirstTherapy
-,AVG(WaitFirstTherapyToSecondTherapy) AS AverageWaitFromFirstTherapyToSecondTherapy
+,AVG(CAST(WaitRefToFirstAssess AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstAssessment
+,AVG(CAST(WaitRefToFirstTherapy AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstTherapy
+,AVG(CAST(WaitFirstTherapyToSecondTherapy AS DECIMAL(7,2))) AS AverageWaitFromFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
@@ -73,9 +73,9 @@ Quarter
 ,RegionNameComm AS OrgName
 ,RegionCodeComm AS OrgCode
 ,'1+ IET' AS AppointmentType
-,AVG(WaitRefToFirstAssess) AS AverageWaitFromReferralToFirstAssessment
-,AVG(WaitRefToFirstTherapy) AS AverageWaitFromReferralToFirstTherapy
-,AVG(WaitFirstTherapyToSecondTherapy) AS AverageWaitFromFirstTherapyToSecondTherapy
+,AVG(CAST(WaitRefToFirstAssess AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstAssessment
+,AVG(CAST(WaitRefToFirstTherapy AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstTherapy
+,AVG(CAST(WaitFirstTherapyToSecondTherapy AS DECIMAL(7,2))) AS AverageWaitFromFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
@@ -93,9 +93,9 @@ Quarter
 ,RegionNameComm  AS OrgName
 ,RegionCodeComm  AS OrgCode
 ,'No IET' AS AppointmentType
-,AVG(WaitRefToFirstAssess) AS AverageWaitFromReferralToFirstAssessment
-,AVG(WaitRefToFirstTherapy) AS AverageWaitFromReferralToFirstTherapy
-,AVG(WaitFirstTherapyToSecondTherapy) AS AverageWaitFromFirstTherapyToSecondTherapy
+,AVG(CAST(WaitRefToFirstAssess AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstAssessment
+,AVG(CAST(WaitRefToFirstTherapy AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstTherapy
+,AVG(CAST(WaitFirstTherapyToSecondTherapy AS DECIMAL(7,2))) AS AverageWaitFromFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -113,9 +113,9 @@ Quarter
 ,RegionNameComm  AS OrgName
 ,RegionCodeComm  AS OrgCode
 ,'2+ IET' AS AppointmentType
-,AVG(WaitRefToFirstAssess) AS AverageWaitFromReferralToFirstAssessment
-,AVG(WaitRefToFirstTherapy) AS AverageWaitFromReferralToFirstTherapy
-,AVG(WaitFirstTherapyToSecondTherapy) AS AverageWaitFromFirstTherapyToSecondTherapy
+,AVG(CAST(WaitRefToFirstAssess AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstAssessment
+,AVG(CAST(WaitRefToFirstTherapy AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstTherapy
+,AVG(CAST(WaitFirstTherapyToSecondTherapy AS DECIMAL(7,2))) AS AverageWaitFromFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
@@ -133,9 +133,9 @@ Quarter
 ,[ICBName] AS OrgName
 ,[ICBCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
-,AVG(WaitRefToFirstAssess) AS AverageWaitFromReferralToFirstAssessment
-,AVG(WaitRefToFirstTherapy) AS AverageWaitFromReferralToFirstTherapy
-,AVG(WaitFirstTherapyToSecondTherapy) AS AverageWaitFromFirstTherapyToSecondTherapy
+,AVG(CAST(WaitRefToFirstAssess AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstAssessment
+,AVG(CAST(WaitRefToFirstTherapy AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstTherapy
+,AVG(CAST(WaitFirstTherapyToSecondTherapy AS DECIMAL(7,2))) AS AverageWaitFromFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
@@ -154,9 +154,9 @@ Quarter
 ,[ICBName] AS OrgName
 ,[ICBCode] AS OrgCode
 ,'No IET' AS AppointmentType
-,AVG(WaitRefToFirstAssess) AS AverageWaitFromReferralToFirstAssessment
-,AVG(WaitRefToFirstTherapy) AS AverageWaitFromReferralToFirstTherapy
-,AVG(WaitFirstTherapyToSecondTherapy) AS AverageWaitFromFirstTherapyToSecondTherapy
+,AVG(CAST(WaitRefToFirstAssess AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstAssessment
+,AVG(CAST(WaitRefToFirstTherapy AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstTherapy
+,AVG(CAST(WaitFirstTherapyToSecondTherapy AS DECIMAL(7,2))) AS AverageWaitFromFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -175,9 +175,9 @@ Quarter
 ,[ICBName] AS OrgName
 ,[ICBCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
-,AVG(WaitRefToFirstAssess) AS AverageWaitFromReferralToFirstAssessment
-,AVG(WaitRefToFirstTherapy) AS AverageWaitFromReferralToFirstTherapy
-,AVG(WaitFirstTherapyToSecondTherapy) AS AverageWaitFromFirstTherapyToSecondTherapy
+,AVG(CAST(WaitRefToFirstAssess AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstAssessment
+,AVG(CAST(WaitRefToFirstTherapy AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstTherapy
+,AVG(CAST(WaitFirstTherapyToSecondTherapy AS DECIMAL(7,2))) AS AverageWaitFromFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
@@ -196,9 +196,9 @@ Quarter
 ,[Sub-ICBName] AS OrgName
 ,[Sub-ICBCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
-,AVG(WaitRefToFirstAssess) AS AverageWaitFromReferralToFirstAssessment
-,AVG(WaitRefToFirstTherapy) AS AverageWaitFromReferralToFirstTherapy
-,AVG(WaitFirstTherapyToSecondTherapy) AS AverageWaitFromFirstTherapyToSecondTherapy
+,AVG(CAST(WaitRefToFirstAssess AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstAssessment
+,AVG(CAST(WaitRefToFirstTherapy AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstTherapy
+,AVG(CAST(WaitFirstTherapyToSecondTherapy AS DECIMAL(7,2))) AS AverageWaitFromFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
@@ -217,9 +217,9 @@ Quarter
 ,[Sub-ICBName] AS OrgName
 ,[Sub-ICBCode] AS OrgCode
 ,'No IET' AS AppointmentType
-,AVG(WaitRefToFirstAssess) AS AverageWaitFromReferralToFirstAssessment
-,AVG(WaitRefToFirstTherapy) AS AverageWaitFromReferralToFirstTherapy
-,AVG(WaitFirstTherapyToSecondTherapy) AS AverageWaitFromFirstTherapyToSecondTherapy
+,AVG(CAST(WaitRefToFirstAssess AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstAssessment
+,AVG(CAST(WaitRefToFirstTherapy AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstTherapy
+,AVG(CAST(WaitFirstTherapyToSecondTherapy AS DECIMAL(7,2))) AS AverageWaitFromFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -238,9 +238,9 @@ Quarter
 ,[Sub-ICBName] AS OrgName
 ,[Sub-ICBCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
-,AVG(WaitRefToFirstAssess) AS AverageWaitFromReferralToFirstAssessment
-,AVG(WaitRefToFirstTherapy) AS AverageWaitFromReferralToFirstTherapy
-,AVG(WaitFirstTherapyToSecondTherapy) AS AverageWaitFromFirstTherapyToSecondTherapy
+,AVG(CAST(WaitRefToFirstAssess AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstAssessment
+,AVG(CAST(WaitRefToFirstTherapy AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstTherapy
+,AVG(CAST(WaitFirstTherapyToSecondTherapy AS DECIMAL(7,2))) AS AverageWaitFromFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
@@ -259,9 +259,9 @@ Quarter
 ,[ProviderName] AS OrgName
 ,[ProviderCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
-,AVG(WaitRefToFirstAssess) AS AverageWaitFromReferralToFirstAssessment
-,AVG(WaitRefToFirstTherapy) AS AverageWaitFromReferralToFirstTherapy
-,AVG(WaitFirstTherapyToSecondTherapy) AS AverageWaitFromFirstTherapyToSecondTherapy
+,AVG(CAST(WaitRefToFirstAssess AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstAssessment
+,AVG(CAST(WaitRefToFirstTherapy AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstTherapy
+,AVG(CAST(WaitFirstTherapyToSecondTherapy AS DECIMAL(7,2))) AS AverageWaitFromFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
@@ -280,9 +280,9 @@ Quarter
 ,[ProviderName] AS OrgName
 ,[ProviderCode] AS OrgCode
 ,'No IET' AS AppointmentType
-,AVG(WaitRefToFirstAssess) AS AverageWaitFromReferralToFirstAssessment
-,AVG(WaitRefToFirstTherapy) AS AverageWaitFromReferralToFirstTherapy
-,AVG(WaitFirstTherapyToSecondTherapy) AS AverageWaitFromFirstTherapyToSecondTherapy
+,AVG(CAST(WaitRefToFirstAssess AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstAssessment
+,AVG(CAST(WaitRefToFirstTherapy AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstTherapy
+,AVG(CAST(WaitFirstTherapyToSecondTherapy AS DECIMAL(7,2))) AS AverageWaitFromFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -301,9 +301,9 @@ Quarter
 ,[ProviderName] AS OrgName
 ,[ProviderCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
-,AVG(WaitRefToFirstAssess) AS AverageWaitFromReferralToFirstAssessment
-,AVG(WaitRefToFirstTherapy) AS AverageWaitFromReferralToFirstTherapy
-,AVG(WaitFirstTherapyToSecondTherapy) AS AverageWaitFromFirstTherapyToSecondTherapy
+,AVG(CAST(WaitRefToFirstAssess AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstAssessment
+,AVG(CAST(WaitRefToFirstTherapy AS DECIMAL(7,2))) AS AverageWaitFromReferralToFirstTherapy
+,AVG(CAST(WaitFirstTherapyToSecondTherapy AS DECIMAL(7,2))) AS AverageWaitFromFirstTherapyToSecondTherapy
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
@@ -331,9 +331,9 @@ Quarter
 ,CAST('ENG' AS VARCHAR(50)) AS OrgCode
 ,CAST('1+ IET' AS VARCHAR(50)) AS AppointmentType
 ,IntEnabledTherProg
-,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
-,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
-,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
+,AVG(CAST(InternetEnabledTherapy_Count AS DECIMAL(7,2))) AS AverageNumberofIETAppointmentsPerTreatment
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AverageIETTherapistTimePerTreatment
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AverageAnyTherapistTimePerTreatment
 ,SUM(CompTreatFlag) AS CompTreatFlag
 INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgApptsAndTimePerTreat]
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
@@ -353,9 +353,9 @@ Quarter
 ,CAST('ENG' AS VARCHAR(50)) AS OrgCode
 ,'No IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
-,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
-,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
+,AVG(CAST(InternetEnabledTherapy_Count AS DECIMAL(7,2))) AS AverageNumberofIETAppointmentsPerTreatment
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AverageIETTherapistTimePerTreatment
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AverageAnyTherapistTimePerTreatment
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -373,9 +373,9 @@ Quarter
 ,CAST('ENG' AS VARCHAR(50)) AS OrgCode
 ,'2+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
-,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
-,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
+,AVG(CAST(InternetEnabledTherapy_Count AS DECIMAL(7,2))) AS AverageNumberofIETAppointmentsPerTreatment
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AverageIETTherapistTimePerTreatment
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AverageAnyTherapistTimePerTreatment
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
@@ -393,9 +393,9 @@ Quarter
 ,RegionCodeComm AS OrgCode
 ,'1+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
-,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
-,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
+,AVG(CAST(InternetEnabledTherapy_Count AS DECIMAL(7,2))) AS AverageNumberofIETAppointmentsPerTreatment
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AverageIETTherapistTimePerTreatment
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AverageAnyTherapistTimePerTreatment
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
@@ -415,9 +415,9 @@ Quarter
 ,RegionCodeComm  AS OrgCode
 ,'No IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
-,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
-,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
+,AVG(CAST(InternetEnabledTherapy_Count AS DECIMAL(7,2))) AS AverageNumberofIETAppointmentsPerTreatment
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AverageIETTherapistTimePerTreatment
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AverageAnyTherapistTimePerTreatment
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -437,9 +437,9 @@ Quarter
 ,RegionCodeComm  AS OrgCode
 ,'2+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
-,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
-,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
+,AVG(CAST(InternetEnabledTherapy_Count AS DECIMAL(7,2))) AS AverageNumberofIETAppointmentsPerTreatment
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AverageIETTherapistTimePerTreatment
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AverageAnyTherapistTimePerTreatment
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
@@ -459,9 +459,9 @@ Quarter
 ,[ICBCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
-,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
-,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
+,AVG(CAST(InternetEnabledTherapy_Count AS DECIMAL(7,2))) AS AverageNumberofIETAppointmentsPerTreatment
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AverageIETTherapistTimePerTreatment
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AverageAnyTherapistTimePerTreatment
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
@@ -482,9 +482,9 @@ Quarter
 ,[ICBCode] AS OrgCode
 ,'No IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
-,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
-,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
+,AVG(CAST(InternetEnabledTherapy_Count AS DECIMAL(7,2))) AS AverageNumberofIETAppointmentsPerTreatment
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AverageIETTherapistTimePerTreatment
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AverageAnyTherapistTimePerTreatment
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -505,9 +505,9 @@ Quarter
 ,[ICBCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
-,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
-,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
+,AVG(CAST(InternetEnabledTherapy_Count AS DECIMAL(7,2))) AS AverageNumberofIETAppointmentsPerTreatment
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AverageIETTherapistTimePerTreatment
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AverageAnyTherapistTimePerTreatment
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
@@ -528,9 +528,9 @@ Quarter
 ,[Sub-ICBCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
-,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
-,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
+,AVG(CAST(InternetEnabledTherapy_Count AS DECIMAL(7,2))) AS AverageNumberofIETAppointmentsPerTreatment
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AverageIETTherapistTimePerTreatment
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AverageAnyTherapistTimePerTreatment
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
@@ -551,9 +551,9 @@ Quarter
 ,[Sub-ICBCode] AS OrgCode
 ,'No IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
-,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
-,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
+,AVG(CAST(InternetEnabledTherapy_Count AS DECIMAL(7,2))) AS AverageNumberofIETAppointmentsPerTreatment
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AverageIETTherapistTimePerTreatment
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AverageAnyTherapistTimePerTreatment
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -574,9 +574,9 @@ Quarter
 ,[Sub-ICBCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
-,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
-,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
+,AVG(CAST(InternetEnabledTherapy_Count AS DECIMAL(7,2))) AS AverageNumberofIETAppointmentsPerTreatment
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AverageIETTherapistTimePerTreatment
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AverageAnyTherapistTimePerTreatment
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
@@ -597,9 +597,9 @@ Quarter
 ,[ProviderCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
-,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
-,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
+,AVG(CAST(InternetEnabledTherapy_Count AS DECIMAL(7,2))) AS AverageNumberofIETAppointmentsPerTreatment
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AverageIETTherapistTimePerTreatment
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AverageAnyTherapistTimePerTreatment
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=1
@@ -620,9 +620,9 @@ Quarter
 ,[ProviderCode] AS OrgCode
 ,'No IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
-,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
-,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
+,AVG(CAST(InternetEnabledTherapy_Count AS DECIMAL(7,2))) AS AverageNumberofIETAppointmentsPerTreatment
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AverageIETTherapistTimePerTreatment
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AverageAnyTherapistTimePerTreatment
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -643,9 +643,9 @@ Quarter
 ,[ProviderCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(InternetEnabledTherapy_Count) AS AverageNumberofIETAppointmentsPerTreatment
-,AVG(DurationIntEnabledTher) AS AverageIETTherapistTimePerTreatment
-,AVG(ClinContactDurOfCareAct) AS AverageAnyTherapistTimePerTreatment
+,AVG(CAST(InternetEnabledTherapy_Count AS DECIMAL(7,2))) AS AverageNumberofIETAppointmentsPerTreatment
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AverageIETTherapistTimePerTreatment
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AverageAnyTherapistTimePerTreatment
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_Base]
 WHERE InternetEnabledTherapy_Count>=2
@@ -677,7 +677,7 @@ SELECT DISTINCT
 	--Therapist Time
 	,i.DurationIntEnabledTher
 
-	,IntEnabledTherProg
+	,b.IntEnabledTherProg
 
 	,CASE WHEN i.LatestContactRank=1 OR i.LatestContactRank IS NULL THEN b.CompTreatFlag ELSE NULL 
 	END AS CompTreatFlag --Flag for completed treatment flag, where the LatestContactRank is 1 or null so that each PathwayID is only counted once
@@ -694,7 +694,7 @@ SELECT DISTINCT
 	,b.RegionNameProv
 INTO [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 FROM [MHDInternal].[TEMP_TTAD_IET_Base] b
-LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_IETContacts] i ON i.PathwayID = b.PathwayID 
+LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_IETContacts] i ON i.PathwayID = b.PathwayID
 
 -----------------------------Aggregated Average IET Therapist Time per Contact-------------------------------------------
 --This table aggregates [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase] table to get the number of PathwayIDs with the completed treatment flag
@@ -713,7 +713,7 @@ Quarter
 ,CAST('ENG' AS VARCHAR(50)) AS OrgCode
 ,CAST('1+ IET' AS VARCHAR(50)) AS AppointmentType
 ,IntEnabledTherProg
-,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AvgIETTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgIETTherapistTime]
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
@@ -733,7 +733,7 @@ Quarter
 ,'ENG' AS OrgCode
 ,'No IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AvgIETTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -751,7 +751,7 @@ Quarter
 ,'ENG' AS OrgCode
 ,'2+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AvgIETTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=2
@@ -769,7 +769,7 @@ Quarter
 ,RegionCodeComm AS OrgCode
 ,'1+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AvgIETTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=1
@@ -789,7 +789,7 @@ Quarter
 ,RegionCodeComm  AS OrgCode
 ,'No IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AvgIETTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -809,7 +809,7 @@ Quarter
 ,RegionCodeComm  AS OrgCode
 ,'2+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AvgIETTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=2
@@ -829,7 +829,7 @@ Quarter
 ,[ICBCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AvgIETTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=1
@@ -850,7 +850,7 @@ Quarter
 ,[ICBCode] AS OrgCode
 ,'No IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AvgIETTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -871,7 +871,7 @@ Quarter
 ,[ICBCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AvgIETTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=2
@@ -892,7 +892,7 @@ Quarter
 ,[Sub-ICBCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AvgIETTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=1
@@ -913,7 +913,7 @@ Quarter
 ,[Sub-ICBCode] AS OrgCode
 ,'No IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AvgIETTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -934,7 +934,7 @@ Quarter
 ,[Sub-ICBCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AvgIETTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=2
@@ -955,7 +955,7 @@ Quarter
 ,[ProviderCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AvgIETTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=1
@@ -976,7 +976,7 @@ Quarter
 ,[ProviderCode] AS OrgCode
 ,'No IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AvgIETTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -997,7 +997,7 @@ Quarter
 ,[ProviderCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(DurationIntEnabledTher) AS AvgIETTherapistTime
+,AVG(CAST(DurationIntEnabledTher AS DECIMAL(7,2))) AS AvgIETTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 WHERE InternetEnabledTherapy_Count>=2
@@ -1085,7 +1085,7 @@ Quarter
 ,CAST('ENG' AS VARCHAR(50)) AS OrgCode
 ,CAST('1+ IET' AS VARCHAR(50)) AS AppointmentType
 ,IntEnabledTherProg
-,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AvgAnyTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 INTO [MHDInternal].[DASHBOARD_TTAD_IET_AvgAnyTherapistTime]
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
@@ -1105,7 +1105,7 @@ Quarter
 ,'ENG' AS OrgCode
 ,'No IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AvgAnyTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -1123,7 +1123,7 @@ Quarter
 ,'ENG' AS OrgCode
 ,'2+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AvgAnyTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=2
@@ -1141,7 +1141,7 @@ Quarter
 ,RegionCodeComm AS OrgCode
 ,'1+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AvgAnyTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=1
@@ -1161,7 +1161,7 @@ Quarter
 ,RegionCodeComm  AS OrgCode
 ,'No IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AvgAnyTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -1181,7 +1181,7 @@ Quarter
 ,RegionCodeComm  AS OrgCode
 ,'2+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AvgAnyTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=2
@@ -1201,7 +1201,7 @@ Quarter
 ,[ICBCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AvgAnyTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=1
@@ -1222,7 +1222,7 @@ Quarter
 ,[ICBCode] AS OrgCode
 ,'No IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AvgAnyTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -1243,7 +1243,7 @@ Quarter
 ,[ICBCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AvgAnyTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=2
@@ -1264,7 +1264,7 @@ Quarter
 ,[Sub-ICBCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AvgAnyTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=1
@@ -1285,7 +1285,7 @@ Quarter
 ,[Sub-ICBCode] AS OrgCode
 ,'No IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AvgAnyTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -1306,7 +1306,7 @@ Quarter
 ,[Sub-ICBCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AvgAnyTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=2
@@ -1327,7 +1327,7 @@ Quarter
 ,[ProviderCode] AS OrgCode
 ,'1+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AvgAnyTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=1
@@ -1348,7 +1348,7 @@ Quarter
 ,[ProviderCode] AS OrgCode
 ,'No IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AvgAnyTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count=0 OR InternetEnabledTherapy_Count IS NULL
@@ -1369,7 +1369,7 @@ Quarter
 ,[ProviderCode] AS OrgCode
 ,'2+ IET' AS AppointmentType
 ,IntEnabledTherProg
-,AVG(ClinContactDurOfCareAct) AS AvgAnyTherapistTime
+,AVG(CAST(ClinContactDurOfCareAct AS DECIMAL(7,2))) AS AvgAnyTherapistTime
 ,SUM(CompTreatFlag) AS CompTreatFlag
 FROM [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
 WHERE InternetEnabledTherapy_Count>=2

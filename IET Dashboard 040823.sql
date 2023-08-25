@@ -8,14 +8,28 @@ Reason for Ending Treatment, Finished Treatment, Integration Engine, Severity, P
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_TypeAndDuration]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration]
 SELECT  
     i.PathwayID
-    ,i.IntEnabledTherProg
+    ,CASE WHEN (i.IntEnabledTherProg LIKE 'SilverCloud%' OR i.IntEnabledTherProg LIKE  'Slvrcld%' ) THEN 'SilverCloud'
+		WHEN (i.IntEnabledTherProg LIKE 'Mnddstrct%' OR i.IntEnabledTherProg LIKE 'Minddistrict%') THEN 'Minddistrict'
+		WHEN i.IntEnabledTherProg LIKE 'iCT%' THEN 'iCT'
+		WHEN i.IntEnabledTherProg LIKE 'OCD%' THEN 'OCD-NET'
+		WHEN i.IntEnabledTherProg IS NULL THEN 'No IET'
+		ELSE i.IntEnabledTherProg
+	END IntEnabledTherProg
 	,i.IntegratedSoftwareInd
     ,SUM(DurationIntEnabledTher) AS DurationIntEnabledTher
 INTO [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration]
 FROM [mesh_IAPT].[IDS205internettherlog] i
 INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON i.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND i.[AuditId] = l.[AuditId]
 WHERE l.IsLatest = 1 
-GROUP BY i.PathwayID, i.IntEnabledTherProg, i.IntegratedSoftwareInd
+GROUP BY i.PathwayID
+,CASE WHEN (i.IntEnabledTherProg LIKE 'SilverCloud%' OR i.IntEnabledTherProg LIKE  'Slvrcld%' ) THEN 'SilverCloud'
+		WHEN (i.IntEnabledTherProg LIKE 'Mnddstrct%' OR i.IntEnabledTherProg LIKE 'Minddistrict%') THEN 'Minddistrict'
+		WHEN i.IntEnabledTherProg LIKE 'iCT%' THEN 'iCT'
+		WHEN i.IntEnabledTherProg LIKE 'OCD%' THEN 'OCD-NET'
+		WHEN i.IntEnabledTherProg IS NULL THEN 'No IET'
+		ELSE i.IntEnabledTherProg
+		END, 
+		i.IntegratedSoftwareInd
 
 ----------------------------------------- Any Appointment Type Clinical Time--------------------------------
 --This table calculates the total clinical time per PathwayID for any appointment type (including IET).
@@ -77,13 +91,9 @@ SELECT DISTINCT
     ,r.InternetEnabledTherapy_Count
 
     --Type of IET
-	,CASE WHEN (i.IntEnabledTherProg LIKE 'SilverCloud%' OR i.IntEnabledTherProg LIKE  'Slvrcld%' ) THEN 'SilverCloud'
-		WHEN (i.IntEnabledTherProg LIKE 'Mnddstrct%' OR i.IntEnabledTherProg LIKE 'Minddistrict%') THEN 'Minddistrict'
-		WHEN i.IntEnabledTherProg LIKE 'iCT%' THEN 'iCT'
-		WHEN i.IntEnabledTherProg LIKE 'OCD%' THEN 'OCD-NET'
-		WHEN i.IntEnabledTherProg IS NULL THEN 'No IET'
+	,CASE WHEN i.IntEnabledTherProg IS NULL THEN 'No IET'
 		ELSE i.IntEnabledTherProg
-		END IntEnabledTherProg
+	END IntEnabledTherProg
 
 	--Therapist Time
 	,i.DurationIntEnabledTher
@@ -203,7 +213,7 @@ WHERE r.UsePathway_Flag = 'True'
 	AND l.IsLatest = 1	--To get the latest data
 	AND r.CompletedTreatment_Flag = 'True'	--Data is filtered to only look at those who have completed a course of treatment
 	AND r.ServDischDate BETWEEN l.ReportingPeriodStartDate AND l.ReportingPeriodEndDate	
-	AND r.ReferralRequestReceivedDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
+	AND r.ReferralRequestReceivedDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodEnd
 	AND l.ReportingPeriodStartDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
 	
 ------------------------------------------------------------------------------------	
@@ -827,7 +837,7 @@ SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-1,MAX([ReportingPeriodEndDate]))
 
 --For monthly refresh the offset should be set to 0 as we only want the latest refreshed month
 DECLARE @Offset int
-SET @Offset=0
+SET @Offset=-32
 
 SET DATEFIRST 1
 
@@ -837,13 +847,9 @@ IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_BasePEQ]') IS NOT NULL DROP TABLE [M
 SELECT DISTINCT 
 CAST(DATENAME(m, l.ReportingPeriodStartDate) + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR) AS DATE) as Month
 ,r.PathwayID
-,CASE WHEN (i.IntEnabledTherProg LIKE 'SilverCloud%' OR i.IntEnabledTherProg LIKE  'Slvrcld%' ) THEN 'SilverCloud'
-		WHEN (i.IntEnabledTherProg LIKE 'Mnddstrct%' OR i.IntEnabledTherProg LIKE 'Minddistrict%') THEN 'Minddistrict'
-		WHEN i.IntEnabledTherProg LIKE 'iCT%' THEN 'iCT'
-		WHEN i.IntEnabledTherProg LIKE 'OCD%' THEN 'OCD-NET'
-		WHEN i.IntEnabledTherProg IS NULL THEN 'No IET'
+,CASE WHEN i.IntEnabledTherProg IS NULL THEN 'No IET'
 		ELSE i.IntEnabledTherProg
-		END IntEnabledTherProg
+END IntEnabledTherProg
 ,r.InternetEnabledTherapy_Count
 ,CASE WHEN p.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 1 score (observable entity)' THEN 'Assessment Question 1'
 	WHEN p.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 2 score (observable entity)' THEN 'Assessment Question 2'
@@ -912,7 +918,7 @@ WHERE l.IsLatest = 1	--To get the latest data
 	AND UsePathway_Flag='True'
 	AND r.CompletedTreatment_Flag = 'True'	--Data is filtered to only look at those who have completed a course of treatment
 	AND r.ServDischDate BETWEEN l.ReportingPeriodStartDate AND l.ReportingPeriodEndDate	
-	AND r.ReferralRequestReceivedDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
+	AND r.ReferralRequestReceivedDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodEnd
 	AND l.ReportingPeriodStartDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
 	
 ----------------------------------------Aggregated PEQ Table------------------------
@@ -921,8 +927,8 @@ WHERE l.IsLatest = 1	--To get the latest data
 --(1+ IET, 2+ IET and No IET), by IET Therapy Types, by PEQ Questions and Answers, and by Month.
 --Only the latest refreshed month is added each month
 
---IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_PEQ]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
-INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_PEQ]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+--INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
 --National, IET 1+
 SELECT 
 Month
@@ -936,7 +942,7 @@ Month
 ,Question
 ,Answer
 ,SUM(CompTreatFlag) AS CompTreatFlag
---INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
 FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
@@ -1288,7 +1294,7 @@ GROUP BY
 	,IntEnabledTherProg
 	,Question
 	,Answer
-
+GO
 
 
 ---------------------------------------------------------
@@ -1309,82 +1315,83 @@ FROM(
 		,i.EndDateIntEnabledTherLog
 		,i.DurationIntEnabledTher
 		,i.Unique_MonthID
-	
+		,CASE WHEN (i.IntEnabledTherProg LIKE 'SilverCloud%' OR i.IntEnabledTherProg LIKE  'Slvrcld%' ) THEN 'SilverCloud'
+		WHEN (i.IntEnabledTherProg LIKE 'Mnddstrct%' OR i.IntEnabledTherProg LIKE 'Minddistrict%') THEN 'Minddistrict'
+		WHEN i.IntEnabledTherProg LIKE 'iCT%' THEN 'iCT'
+		WHEN i.IntEnabledTherProg LIKE 'OCD%' THEN 'OCD-NET'
+		WHEN i.IntEnabledTherProg IS NULL THEN 'No IET'
+		ELSE i.IntEnabledTherProg
+		END IntEnabledTherProg
+		--,l.ReportingPeriodStartDate
 	FROM [mesh_IAPT].[IDS205internettherlog] i
 	INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON i.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND i.[AuditId] = l.[AuditId]
 	WHERE l.IsLatest = 1
 )_
 ------------------------------------------Appts Base table-------------------------------------
 --This creates a base table with one record per row which is then aggregated to produce [MHDInternal].[DASHBOARD_TTAD_IET_IETTherapistTimeRecord]
--- DECLARE @PeriodStart DATE
--- DECLARE @PeriodEnd DATE 
--- --For refreshing, the offset for getting the period start and end should be -1 to get the latest refreshed month
--- SET @PeriodStart = (SELECT DATEADD(MONTH,-1,MAX([ReportingPeriodStartDate])) FROM [mesh_IAPT].[IsLatest_SubmissionID])
--- SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-1,MAX([ReportingPeriodEndDate]))) FROM [mesh_IAPT].[IsLatest_SubmissionID])
+DECLARE @PeriodStart DATE
+DECLARE @PeriodEnd DATE 
+--For refreshing, the offset for getting the period start and end should be -1 to get the latest refreshed month
+SET @PeriodStart = (SELECT DATEADD(MONTH,-1,MAX([ReportingPeriodStartDate])) FROM [mesh_IAPT].[IsLatest_SubmissionID])
+SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-1,MAX([ReportingPeriodEndDate]))) FROM [mesh_IAPT].[IsLatest_SubmissionID])
 
--- --For monthly refresh the offset needs to be set for September 2020 (e.g. @PeriodStart -30 = -31 which is the offset of September 2020)
--- --The full period is run due to the average tables (which use this base table) recalculating the averages for each quarter
--- DECLARE @Offset int
--- SET @Offset=-32		 
+--For monthly refresh the offset needs to be set for September 2020 (e.g. @PeriodStart -30 = -31 which is the offset of September 2020)
+--The full period is run due to the average tables (which use this base table) recalculating the averages for each quarter
+DECLARE @Offset int
+SET @Offset=-32		 
 
--- SET DATEFIRST 1
+SET DATEFIRST 1
 
--- PRINT @PeriodStart
--- PRINT @PeriodEnd
+PRINT @PeriodStart
+PRINT @PeriodEnd
 
--- IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_BaseAppts]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_BaseAppts]
--- SELECT DISTINCT
--- 	CAST(DATENAME(m, l.ReportingPeriodStartDate) + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR) AS DATE) AS Month
--- 	,r.PathwayID
--- 	,r.Unique_MonthID
+IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_BaseAppts]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_BaseAppts]
+SELECT DISTINCT
+	CAST(DATENAME(m, l.ReportingPeriodStartDate) + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR) AS DATE) AS Month
+	,r.PathwayID
+	,r.Unique_MonthID
 
---     --Type of IET
--- 	,CASE WHEN (i.IntEnabledTherProg LIKE 'SilverCloud%' OR i.IntEnabledTherProg LIKE  'Slvrcld%' ) THEN 'SilverCloud'
--- 		WHEN (i.IntEnabledTherProg LIKE 'Mnddstrct%' OR i.IntEnabledTherProg LIKE 'Minddistrict%') THEN 'Minddistrict'
--- 		WHEN i.IntEnabledTherProg LIKE 'iCT%' THEN 'iCT'
--- 		WHEN i.IntEnabledTherProg LIKE 'OCD%' THEN 'OCD-NET'
--- 		WHEN i.IntEnabledTherProg IS NULL THEN 'No IET'
--- 		ELSE i.IntEnabledTherProg
--- 		END IntEnabledTherProg
+    --Type of IET
+	,CASE WHEN ic.IntEnabledTherProg IS NULL THEN 'No IET'
+		ELSE ic.IntEnabledTherProg
+	END AS IntEnabledTherProg
 	
--- 	--Therapist Time
--- 	,i.DurationIntEnabledTher
--- 	,CASE WHEN (i.DurationIntEnabledTher IS NULL OR i.DurationIntEnabledTher=0) THEN 'No Therapist Time Recorded'
--- 		WHEN i.DurationIntEnabledTher>0 THEN 'Therapist Time Recorded'
--- 	END AS TherapistTimeRecorded --Flag for whether IET therapist time was recorded or not
+	--Therapist Time
+	,ic.DurationIntEnabledTher
+	,CASE WHEN (ic.DurationIntEnabledTher IS NULL OR ic.DurationIntEnabledTher=0) THEN 'No Therapist Time Recorded'
+		WHEN ic.DurationIntEnabledTher>0 THEN 'Therapist Time Recorded'
+	END AS TherapistTimeRecorded --Flag for whether IET therapist time was recorded or not
 
--- 	,ic.StartDateIntEnabledTherLog
---     --Geography
---     ,CASE WHEN ch.[Organisation_Code] IS NOT NULL THEN ch.[Organisation_Code] ELSE 'Other' END AS 'Sub-ICBCode'
--- 	,CASE WHEN ch.[Organisation_Name] IS NOT NULL THEN ch.[Organisation_Name] ELSE 'Other' END AS 'Sub-ICBName'
--- 	,CASE WHEN ch.[STP_Code] IS NOT NULL THEN ch.[STP_Code] ELSE 'Other' END AS 'ICBCode'
--- 	,CASE WHEN ch.[STP_Name] IS NOT NULL THEN ch.[STP_Name] ELSE 'Other' END AS 'ICBName'
--- 	,CASE WHEN ch.[Region_Name] IS NOT NULL THEN ch.[Region_Name] ELSE 'Other' END AS'RegionNameComm'
--- 	,CASE WHEN ch.[Region_Code] IS NOT NULL THEN ch.[Region_Code] ELSE 'Other' END AS 'RegionCodeComm'
--- 	,CASE WHEN ph.[Organisation_Code] IS NOT NULL THEN ph.[Organisation_Code] ELSE 'Other' END AS 'ProviderCode'
--- 	,CASE WHEN ph.[Organisation_Name] IS NOT NULL THEN ph.[Organisation_Name] ELSE 'Other' END AS 'ProviderName'
--- 	,CASE WHEN ph.[Region_Name] IS NOT NULL THEN ph.[Region_Name] ELSE 'Other' END AS 'RegionNameProv'
--- INTO [MHDInternal].[TEMP_TTAD_IET_BaseAppts]
--- FROM [MESH_IAPT].[IDS101referral] r
+	,ic.StartDateIntEnabledTherLog
+    --Geography
+    ,CASE WHEN ch.[Organisation_Code] IS NOT NULL THEN ch.[Organisation_Code] ELSE 'Other' END AS 'Sub-ICBCode'
+	,CASE WHEN ch.[Organisation_Name] IS NOT NULL THEN ch.[Organisation_Name] ELSE 'Other' END AS 'Sub-ICBName'
+	,CASE WHEN ch.[STP_Code] IS NOT NULL THEN ch.[STP_Code] ELSE 'Other' END AS 'ICBCode'
+	,CASE WHEN ch.[STP_Name] IS NOT NULL THEN ch.[STP_Name] ELSE 'Other' END AS 'ICBName'
+	,CASE WHEN ch.[Region_Name] IS NOT NULL THEN ch.[Region_Name] ELSE 'Other' END AS'RegionNameComm'
+	,CASE WHEN ch.[Region_Code] IS NOT NULL THEN ch.[Region_Code] ELSE 'Other' END AS 'RegionCodeComm'
+	,CASE WHEN ph.[Organisation_Code] IS NOT NULL THEN ph.[Organisation_Code] ELSE 'Other' END AS 'ProviderCode'
+	,CASE WHEN ph.[Organisation_Name] IS NOT NULL THEN ph.[Organisation_Name] ELSE 'Other' END AS 'ProviderName'
+	,CASE WHEN ph.[Region_Name] IS NOT NULL THEN ph.[Region_Name] ELSE 'Other' END AS 'RegionNameProv'
+INTO [MHDInternal].[TEMP_TTAD_IET_BaseAppts]
+FROM [MESH_IAPT].[IDS101referral] r
 
--- INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON r.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND r.[AuditId] = l.[AuditId]
+INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON r.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND r.[AuditId] = l.[AuditId]
 
--- --Four tables for getting the up-to-date Sub-ICB/ICB/Region/Provider names/codes:
--- LEFT JOIN [Internal_Reference].[ComCodeChanges] cc ON r.OrgIDComm = cc.Org_Code COLLATE database_default
--- LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON COALESCE(cc.New_Code, r.OrgIDComm) = ch.Organisation_Code COLLATE database_default 
--- 	AND ch.Effective_To IS NULL
+--Four tables for getting the up-to-date Sub-ICB/ICB/Region/Provider names/codes:
+LEFT JOIN [Internal_Reference].[ComCodeChanges] cc ON r.OrgIDComm = cc.Org_Code COLLATE database_default
+LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON COALESCE(cc.New_Code, r.OrgIDComm) = ch.Organisation_Code COLLATE database_default 
+	AND ch.Effective_To IS NULL
 
--- LEFT JOIN [Internal_Reference].[Provider_Successor] ps ON r.OrgID_Provider = ps.Prov_original COLLATE database_default
--- LEFT JOIN [Reporting].[Ref_ODS_Provider_Hierarchies_ICB] ph ON COALESCE(ps.Prov_Successor, r.OrgID_Provider) = ph.Organisation_Code COLLATE database_default
--- 	AND ph.Effective_To IS NULL
+LEFT JOIN [Internal_Reference].[Provider_Successor] ps ON r.OrgID_Provider = ps.Prov_original COLLATE database_default
+LEFT JOIN [Reporting].[Ref_ODS_Provider_Hierarchies_ICB] ph ON COALESCE(ps.Prov_Successor, r.OrgID_Provider) = ph.Organisation_Code COLLATE database_default
+	AND ph.Effective_To IS NULL
 
--- LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration] i ON i.PathwayID = r.PathwayID
---  LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_IETContacts] ic ON ic.PathwayID = r.PathwayID and ic.UniqueMonthID=r.UniqueMonthID
--- WHERE r.UsePathway_Flag = 'True' 
--- 	AND l.IsLatest = 1	--To get the latest data
--- 	--AND r.ReferralRequestReceivedDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
--- 	AND l.ReportingPeriodStartDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
-
+LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_IETContacts] ic ON ic.PathwayID = r.PathwayID and ic.Unique_MonthID=r.Unique_MonthID
+WHERE r.UsePathway_Flag = 'True' 
+	AND l.IsLatest = 1	--To get the latest data
+	AND ic.StartDateIntEnabledTherLog BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodEnd
+	AND l.ReportingPeriodStartDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
 ------------------------------------Aggregate IET Therapist Time Record
 --This table aggregates [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase] table to get the number of PathwayIDs with the completed treatment flag 
 --and have an IET therapy type.
@@ -1493,4 +1500,3 @@ GROUP BY
 	,[ProviderCode]
 	,IntEnabledTherProg
 	,TherapistTimeRecorded
----------------------------------------------------------
