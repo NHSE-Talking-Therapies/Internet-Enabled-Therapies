@@ -837,7 +837,7 @@ SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-1,MAX([ReportingPeriodEndDate]))
 
 --For monthly refresh the offset should be set to 0 as we only want the latest refreshed month
 DECLARE @Offset int
-SET @Offset=-32
+SET @Offset=0
 
 SET DATEFIRST 1
 
@@ -927,8 +927,8 @@ WHERE l.IsLatest = 1	--To get the latest data
 --(1+ IET, 2+ IET and No IET), by IET Therapy Types, by PEQ Questions and Answers, and by Month.
 --Only the latest refreshed month is added each month
 
-IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_PEQ]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
---INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+--IF OBJECT_ID ('[MHDInternal].[DASHBOARD_TTAD_IET_PEQ]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
 --National, IET 1+
 SELECT 
 Month
@@ -942,7 +942,7 @@ Month
 ,Question
 ,Answer
 ,SUM(CompTreatFlag) AS CompTreatFlag
-INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
+--INTO [MHDInternal].[DASHBOARD_TTAD_IET_PEQ]
 FROM [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
 WHERE InternetEnabledTherapy_Count>=1
 GROUP BY 
@@ -1321,7 +1321,7 @@ FROM(
 		WHEN i.IntEnabledTherProg LIKE 'OCD%' THEN 'OCD-NET'
 		WHEN i.IntEnabledTherProg IS NULL THEN 'No IET'
 		ELSE i.IntEnabledTherProg
-		END IntEnabledTherProg
+		END AS IntEnabledTherProg
 		--,l.ReportingPeriodStartDate
 	FROM [mesh_IAPT].[IDS205internettherlog] i
 	INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON i.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND i.[AuditId] = l.[AuditId]

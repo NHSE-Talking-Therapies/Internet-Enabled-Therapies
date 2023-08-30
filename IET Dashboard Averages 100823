@@ -1387,6 +1387,7 @@ GROUP BY
 --DROP TABLE [MHDInternal].[TEMP_TTAD_IET_PEQRank]
 --DROP TABLE [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
 --DROP TABLE [MHDInternal].[TEMP_TTAD_IET_IETContacts]
+--DROP TABLE [MHDInternal].[TEMP_TTAD_IET_BaseAppts]
 --DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
 --DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AllContacts]
 --DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
