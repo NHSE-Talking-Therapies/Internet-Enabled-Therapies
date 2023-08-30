@@ -1,3 +1,5 @@
+--Please note this information is experimental and it is only intended for use for management purposes.
+
 /****** Script for Internet Enabled Therapies Dashboard to produce tables for Appointments, Clinical Outcomes by Therapy Type, Clinical Outcomes by Problem Descriptor,
 Reason for Ending Treatment, Finished Treatment, Integration Engine, Severity, Pathway Type and PEQ ******/
 
