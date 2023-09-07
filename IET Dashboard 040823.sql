@@ -19,6 +19,7 @@ SELECT
 	END IntEnabledTherProg
 	,i.IntegratedSoftwareInd
     ,SUM(DurationIntEnabledTher) AS DurationIntEnabledTher
+	,COUNT(DISTINCT CASE WHEN i.[EndDateIntEnabledTherLog] BETWEEN l.ReportingPeriodStartDate and l.ReportingPeriodEndDate THEN [UniqueID_IDS205] ELSE NULL END) AS Count_IET
 INTO [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration]
 FROM [mesh_IAPT].[IDS205internettherlog] i
 INNER JOIN [mesh_IAPT].[IsLatest_SubmissionID] l ON i.[UniqueSubmissionID] = l.[UniqueSubmissionID] AND i.[AuditId] = l.[AuditId]
@@ -55,10 +56,10 @@ DECLARE @PeriodEnd DATE
 SET @PeriodStart = (SELECT DATEADD(MONTH,-1,MAX([ReportingPeriodStartDate])) FROM [mesh_IAPT].[IsLatest_SubmissionID])
 SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-1,MAX([ReportingPeriodEndDate]))) FROM [mesh_IAPT].[IsLatest_SubmissionID])
 
---For monthly refresh the offset needs to be set for September 2020 (e.g. @PeriodStart -30 = -31 which is the offset of September 2020)
+--For monthly refresh @PeriodStart2 should always be set for September 2020 
 --The full period is run due to the average tables (which use this base table) recalculating the averages for each quarter
-DECLARE @Offset int
-SET @Offset=-32		 
+DECLARE @PeriodStart2 DATE
+SET @PeriodStart2= '2020-09-01'	 
 
 SET DATEFIRST 1
 
@@ -68,11 +69,7 @@ PRINT @PeriodEnd
 IF OBJECT_ID ('[MHDInternal].[TEMP_TTAD_IET_Base]') IS NOT NULL DROP TABLE [MHDInternal].[TEMP_TTAD_IET_Base]
 SELECT DISTINCT
 	CAST(DATENAME(m, l.ReportingPeriodStartDate) + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR) AS DATE) AS Month
-    ,CASE WHEN DATENAME(q, l.ReportingPeriodStartDate)=1 THEN 'Q4' + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR)
-    WHEN DATENAME(q, l.ReportingPeriodStartDate)=2 THEN 'Q1' + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR)
-    WHEN DATENAME(q, l.ReportingPeriodStartDate)=3 THEN 'Q2' + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR)
-    WHEN DATENAME(q, l.ReportingPeriodStartDate)=4 THEN 'Q3' + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS VARCHAR)
-	END AS Quarter	--Financial year quarters
+	,[Fin_Year_Quarter_QQ_YY_YY] AS Quarter
 	,l.ReportingPeriodStartDate
 	,l.ReportingPeriodEndDate
 	,r.PathwayID
@@ -90,8 +87,8 @@ SELECT DISTINCT
 	,DATEDIFF(DD,r.TherapySession_FirstDate,r.TherapySession_SecondDate) AS WaitFirstTherapyToSecondTherapy
 		
 	--Number of Appointments
-    ,r.InternetEnabledTherapy_Count
-
+    ,r.InternetEnabledTherapy_Count AS OldIETCount
+	,i.Count_IET AS InternetEnabledTherapy_Count
     --Type of IET
 	,CASE WHEN i.IntEnabledTherProg IS NULL THEN 'No IET'
 		ELSE i.IntEnabledTherProg
@@ -211,12 +208,14 @@ LEFT JOIN [Reporting].[Ref_ODS_Provider_Hierarchies_ICB] ph ON COALESCE(ps.Prov_
 LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration] i ON i.PathwayID = r.PathwayID
 LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_NoIETDuration] ca ON ca.PathwayID=r.PathwayID
 
+INNER JOIN [Internal_Reference].[Date_Full] ON Full_Date = l.ReportingPeriodStartDate
+
 WHERE r.UsePathway_Flag = 'True' 
 	AND l.IsLatest = 1	--To get the latest data
 	AND r.CompletedTreatment_Flag = 'True'	--Data is filtered to only look at those who have completed a course of treatment
 	AND r.ServDischDate BETWEEN l.ReportingPeriodStartDate AND l.ReportingPeriodEndDate	
-	AND r.ReferralRequestReceivedDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodEnd
-	AND l.ReportingPeriodStartDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
+	AND r.ReferralRequestReceivedDate BETWEEN @PeriodStart2 AND @PeriodEnd
+	AND l.ReportingPeriodStartDate BETWEEN @PeriodStart2 AND @PeriodStart
 	
 ------------------------------------------------------------------------------------	
 ----------------------------------------Aggregated Main Table------------------------
@@ -841,6 +840,9 @@ SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-1,MAX([ReportingPeriodEndDate]))
 DECLARE @Offset int
 SET @Offset=0
 
+DECLARE @PeriodStart2 DATE
+SET @PeriodStart2= '2020-09-01'	 --This is for defining the period for referrals
+
 SET DATEFIRST 1
 
 PRINT @PeriodStart
@@ -852,7 +854,7 @@ CAST(DATENAME(m, l.ReportingPeriodStartDate) + ' ' + CAST(DATEPART(yyyy, l.Repor
 ,CASE WHEN i.IntEnabledTherProg IS NULL THEN 'No IET'
 		ELSE i.IntEnabledTherProg
 END IntEnabledTherProg
-,r.InternetEnabledTherapy_Count
+,i.Count_IET AS InternetEnabledTherapy_Count
 ,CASE WHEN p.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 1 score (observable entity)' THEN 'Assessment Question 1'
 	WHEN p.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 2 score (observable entity)' THEN 'Assessment Question 2'
 	WHEN p.[Term]='Improving Access to Psychological Therapies assessment Patient Experience Questionnaire choice question 3 score (observable entity)' THEN 'Assessment Question 3'
@@ -920,7 +922,7 @@ WHERE l.IsLatest = 1	--To get the latest data
 	AND UsePathway_Flag='True'
 	AND r.CompletedTreatment_Flag = 'True'	--Data is filtered to only look at those who have completed a course of treatment
 	AND r.ServDischDate BETWEEN l.ReportingPeriodStartDate AND l.ReportingPeriodEndDate	
-	AND r.ReferralRequestReceivedDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodEnd
+	AND r.ReferralRequestReceivedDate BETWEEN @PeriodStart2 AND @PeriodEnd
 	AND l.ReportingPeriodStartDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
 	
 ----------------------------------------Aggregated PEQ Table------------------------
@@ -1337,10 +1339,10 @@ DECLARE @PeriodEnd DATE
 SET @PeriodStart = (SELECT DATEADD(MONTH,-1,MAX([ReportingPeriodStartDate])) FROM [mesh_IAPT].[IsLatest_SubmissionID])
 SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-1,MAX([ReportingPeriodEndDate]))) FROM [mesh_IAPT].[IsLatest_SubmissionID])
 
---For monthly refresh the offset needs to be set for September 2020 (e.g. @PeriodStart -30 = -31 which is the offset of September 2020)
+--For monthly refresh @periodStart2 should always be set for September 2020 
 --The full period is run due to the average tables (which use this base table) recalculating the averages for each quarter
-DECLARE @Offset int
-SET @Offset=-32		 
+DECLARE @PeriodStart2 DATE
+SET @PeriodStart2= '2020-09-01'	 	 
 
 SET DATEFIRST 1
 
@@ -1365,6 +1367,7 @@ SELECT DISTINCT
 	END AS TherapistTimeRecorded --Flag for whether IET therapist time was recorded or not
 
 	,ic.StartDateIntEnabledTherLog
+	,ic.EndDateIntEnabledTherLog
     --Geography
     ,CASE WHEN ch.[Organisation_Code] IS NOT NULL THEN ch.[Organisation_Code] ELSE 'Other' END AS 'Sub-ICBCode'
 	,CASE WHEN ch.[Organisation_Name] IS NOT NULL THEN ch.[Organisation_Name] ELSE 'Other' END AS 'Sub-ICBName'
@@ -1392,8 +1395,9 @@ LEFT JOIN [Reporting].[Ref_ODS_Provider_Hierarchies_ICB] ph ON COALESCE(ps.Prov_
 LEFT JOIN [MHDInternal].[TEMP_TTAD_IET_IETContacts] ic ON ic.PathwayID = r.PathwayID and ic.Unique_MonthID=r.Unique_MonthID
 WHERE r.UsePathway_Flag = 'True' 
 	AND l.IsLatest = 1	--To get the latest data
-	AND ic.StartDateIntEnabledTherLog BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodEnd
-	AND l.ReportingPeriodStartDate BETWEEN DATEADD(MONTH, @Offset, @PeriodStart) AND @PeriodStart
+	AND ic.EndDateIntEnabledTherLog BETWEEN l.ReportingPeriodStartDate AND l.ReportingPeriodEndDate
+	AND l.ReportingPeriodStartDate BETWEEN @PeriodStart2 AND @PeriodStart
+	
 ------------------------------------Aggregate IET Therapist Time Record
 --This table aggregates [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase] table to get the number of PathwayIDs with the completed treatment flag 
 --and have an IET therapy type.
