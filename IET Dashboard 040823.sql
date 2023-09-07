@@ -56,7 +56,7 @@ DECLARE @PeriodEnd DATE
 SET @PeriodStart = (SELECT DATEADD(MONTH,-1,MAX([ReportingPeriodStartDate])) FROM [mesh_IAPT].[IsLatest_SubmissionID])
 SET @PeriodEnd = (SELECT EOMONTH(DATEADD(MONTH,-1,MAX([ReportingPeriodEndDate]))) FROM [mesh_IAPT].[IsLatest_SubmissionID])
 
---For monthly refresh @periodStart2 should always be set for September 2020 
+--For monthly refresh @PeriodStart2 should always be set for September 2020 
 --The full period is run due to the average tables (which use this base table) recalculating the averages for each quarter
 DECLARE @PeriodStart2 DATE
 SET @PeriodStart2= '2020-09-01'	 

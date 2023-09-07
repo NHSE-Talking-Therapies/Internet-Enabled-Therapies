@@ -1383,13 +1383,13 @@ GROUP BY
 	,IntEnabledTherProg
 -----------------------------------------
 --Drop Temp Tables:
---DROP TABLE [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration]
---DROP TABLE [MHDInternal].[TEMP_TTAD_IET_NoIETDuration]
---DROP TABLE [MHDInternal].[TEMP_TTAD_IET_Base]
---DROP TABLE [MHDInternal].[TEMP_TTAD_IET_PEQRank]
---DROP TABLE [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
---DROP TABLE [MHDInternal].[TEMP_TTAD_IET_IETContacts]
---DROP TABLE [MHDInternal].[TEMP_TTAD_IET_BaseAppts]
---DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
---DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AllContacts]
---DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
+-- DROP TABLE [MHDInternal].[TEMP_TTAD_IET_TypeAndDuration]
+-- DROP TABLE [MHDInternal].[TEMP_TTAD_IET_NoIETDuration]
+-- DROP TABLE [MHDInternal].[TEMP_TTAD_IET_Base]
+-- DROP TABLE [MHDInternal].[TEMP_TTAD_IET_PEQRank]
+-- DROP TABLE [MHDInternal].[TEMP_TTAD_IET_BasePEQ]
+-- DROP TABLE [MHDInternal].[TEMP_TTAD_IET_IETContacts]
+-- DROP TABLE [MHDInternal].[TEMP_TTAD_IET_BaseAppts]
+-- DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AvgIETContactBase]
+-- DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AllContacts]
+-- DROP TABLE [MHDInternal].[TEMP_TTAD_IET_AvgAllContactBase]
